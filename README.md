@@ -1,6 +1,9 @@
 # Music Recommender
 A highly adaptable music recommendation engine. Provide music recommendations based on a dynamic input environment.
 
+![Example](docs/example.png)
+
+
 Everything is designed around representation vector for tracks, artists and genres.
 
 
