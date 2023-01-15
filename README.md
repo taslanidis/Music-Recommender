@@ -1,12 +1,24 @@
 # Music Recommender
 A highly adaptable music recommendation engine. Provide music recommendations based on a dynamic input environment.
 
+Everything is designed around representation vector for tracks, artists and genres.
+
+
+## Track Representation Vector
+The foundation of the algorithm is the track representation vector.
+
+![TRV](docs/track_representation_vector.png)
+
 ## Data
+In order to represent the entities accordingly, the data architecture is presented as per below.
+
 ![Data](docs/input_data.png)
 
 ### Tracks
 Track audio features 
 *(provided by the SpotifyAPI)*
+
+<img style="align: center;" src="docs/track_audio_features.png" width="800" height="400">
 
 ### Genres
 Embeddings
@@ -18,11 +30,7 @@ Embeddings
 1. Create word embeddings based on artists that have collaborated or toured together
 2. TF-IDF for weights on multiple artist vector representation
 
-## Track Representation Vector
-![TRV](docs/track_representation_vector.png)
-
 ## System
-A FastAPI service along with a Dash application, consist of this music recommendation engine.
 
 ![SystemOverview](docs/system_overview.png)
 
