@@ -5,26 +5,23 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import StandardScaler
 
 from recommender_system.algorithm.profile_creator import ProfileCreator
-from common.data_transfer.models import EnhancedTrack, TrackAudioFeatures
-from common.database.mongo_db import MongoDatabase
+from common.domain.models import Track, Artist
+from common.database.local_storage import LocalStorage
 from spotify_connectors.spotify_web_api import SpotifyWebAPI
-
-
-# TODO: create various recommenders, such as EigenTrackRecommender, SimilarArtistRecommender etc.
 
 
 class NearestNeighborsRecommender:
 
     def __init__(self):
-        self._db = MongoDatabase()
-        self._tracks = self._db.load_all_tracks()
-        self._artists = self._db.load_all_artists()
+        self._db = LocalStorage()
+        self._tracks: List[Track] = self._db.load_all_tracks()
+        self._artists: List[Artist] = self._db.load_all_artists()
         self._spotify_web_api = SpotifyWebAPI()
         self._profile_creator = ProfileCreator()
         self._profile_creator.prepare_profiler(
             fit_data=[track.audio_features for track in self._tracks]
         )
-        self._model = NearestNeighbors(
+        self._recommender_model = NearestNeighbors(
             n_neighbors=20,
             metric='cosine'
         )
@@ -33,8 +30,8 @@ class NearestNeighborsRecommender:
 
 
     def prepare_recommender(self):
-        self._fit_normalizer([track.audio_features for track in self._tracks])
-        self._fit_model([track.audio_features for track in self._tracks])
+        self._fit_normalizer([track.get_normalizable_part() for track in self._tracks])
+        self._fit_model([track. for track in self._tracks])
 
     
     def _fit_normalizer(
@@ -54,7 +51,7 @@ class NearestNeighborsRecommender:
             [data_point.to_numpy() for data_point in fit_data]
         )
 
-        self._model.fit(
+        self._recommender_model.fit(
             normalized_fit_data
         )
 
@@ -75,7 +72,7 @@ class NearestNeighborsRecommender:
             features
         )
         
-        neighbors = self._model.kneighbors(
+        neighbors = self._recommender_model.kneighbors(
             features, 
             return_distance=False
         )

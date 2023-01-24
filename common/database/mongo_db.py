@@ -2,9 +2,10 @@ from pymongo import MongoClient, ReplaceOne
 from typing import List
 
 from common.data_transfer.models import Album, Artist, EnhancedTrack
+from common.database.default_db import DefaultDb
 
 
-class MongoDatabase:
+class MongoDatabase(DefaultDb):
 
     def __init__(self):
         self.__client = MongoClient('localhost', 27017)

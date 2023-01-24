@@ -10,6 +10,12 @@ class Settings(BaseSettings):
     spotify_redirect_uri: str = "http://localhost:8025"
     limit_max: int = 50
     backoff_factor: int = 90
+    
+    artist_embeddings: str
+    genre_embeddings: str
+
+    track_local_stored_path: str = None
+    artist_local_stored_path: str = None
 
     class Config:
         env_file = ".env"
