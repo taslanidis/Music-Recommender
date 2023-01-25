@@ -6,16 +6,13 @@ from sklearn.preprocessing import StandardScaler
 
 from recommender_system.algorithm.profile_creator import ProfileCreator
 from common.domain.models import Track, Artist
-from common.database.local_storage import LocalStorage
 from spotify_connectors.spotify_web_api import SpotifyWebAPI
 
 
 class NearestNeighborsRecommender:
 
     def __init__(self):
-        self._db = LocalStorage()
-        self._tracks: List[Track] = self._db.load_all_tracks()
-        self._artists: List[Artist] = self._db.load_all_artists()
+        self._data_provider = DataProvider()
         self._spotify_web_api = SpotifyWebAPI()
         self._profile_creator = ProfileCreator()
         self._profile_creator.prepare_profiler(
