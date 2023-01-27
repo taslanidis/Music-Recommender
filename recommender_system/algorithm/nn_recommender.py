@@ -16,7 +16,7 @@ class NearestNeighborsRecommender:
         self._spotify_web_api = SpotifyWebAPI()
         self._profile_creator = ProfileCreator()
         self._profile_creator.prepare_profiler(
-            fit_data=[track.audio_features for track in self._tracks]
+            fit_data=[track.audio_features for track in self._data_provider.get_all_available_tracks()]
         )
         self._recommender_model = NearestNeighbors(
             n_neighbors=20,
@@ -27,8 +27,12 @@ class NearestNeighborsRecommender:
 
 
     def prepare_recommender(self):
-        self._fit_normalizer([track.get_normalizable_part() for track in self._tracks])
-        self._fit_model([track. for track in self._tracks])
+        self._fit_normalizer(
+            [track.get_normalizable_part() for track in self._data_provider.get_all_available_tracks()]
+        )
+        self._fit_model(
+            [track.get_normalizable_part() for track in self._data_provider.get_all_available_tracks()]
+        )
 
     
     def _fit_normalizer(

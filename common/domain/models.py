@@ -32,10 +32,12 @@ class Track:
     ]
     
     
-    def get_normalizable_part(self) -> Dict:
-        return {
-            key: getattr(self, key) for key in self._attrs_to_normalize
-        }
+    def to_numpy_normalizable_part(self) -> Dict:
+       return np.array([getattr(self, key) for key in self._attrs_to_normalize])
+
+
+    def to_numpy():
+        return np.array([val for val in self.values])
 
 
 
