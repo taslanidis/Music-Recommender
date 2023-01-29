@@ -10,7 +10,7 @@ from spotify_connectors.spotify_web_api import SpotifyWebAPI
 
 class DataProvider:
 
-    _track_representation_vectors: List[RepresentationVector] = None
+    _track_representation_vectors: Dict[str, RepresentationVector] = None
     _tracks: Dict[str, Track] = None
     _artists: Dict[str, Artist] = None
     
@@ -24,7 +24,7 @@ class DataProvider:
         self._data_processor.fit_normalizer(self._tracks)
         
         self._track_representation_vectors = self._data_processor._initialize_track_representation_vectors(
-            self._tracks
+            self._tracks.values()
         )
     
 
@@ -37,6 +37,7 @@ class DataProvider:
 
 
     def get_track(self, track_id: str) -> List[Track]:
+        #TODO: hit spotify api to store it if not exists
         return self._tracks[track_id]
     
 
@@ -59,8 +60,8 @@ class DataProvider:
         self,
         track: Track
     ) -> RepresentationVector:
-        
-        if track.id in self._tracks:
-            return self._tracks[track.id]
+        #TODO: hit spotify api to store it if not exists
+        if track.id in self._track_representation_vectors:
+            return self._track_representation_vectors[track.id]
         
         return self._data_processor.create_track_representation_vector(track)

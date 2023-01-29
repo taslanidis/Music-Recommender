@@ -16,12 +16,15 @@ class NearestNeighborsRecommender:
             n_neighbors=20,
             metric='cosine'
         )
+        self._fit_data_keys: List[str] = None
         self.prepare_recommender()
 
 
     def prepare_recommender(self):
+        track_vectors = self._data_provider.get_all_representation_vectors()
+        self._fit_data_keys = list(track_vectors.keys())
         self._fit_model(
-            [track_repr_vector for track_repr_vector in self._data_provider.get_all_representation_vectors()]
+            [track_repr_vector for track_repr_vector in track_vectors.values()]
         )
 
 
@@ -52,7 +55,9 @@ class NearestNeighborsRecommender:
             return_distance=False
         )
 
-        return [self._data_provider.get_track(ngbr) for ngbr in neighbors[0]]
+        return [
+            self._data_provider.get_track(self._fit_data_keys[ngbr]) for ngbr in neighbors[0]
+        ]
 
 
     def recommend_k_tracks_based_on_track_pool(
