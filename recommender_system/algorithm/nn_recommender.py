@@ -4,14 +4,13 @@ from sklearn.neighbors import NearestNeighbors
 
 from recommender_system.algorithm.profile_creator import ProfileCreator
 from recommender_system.data_engineering.data_provider import DataProvider
-from spotify_connectors.spotify_web_api import SpotifyWebAPI
+from common.domain.models import Track, Artist, RepresentationVector
 
 
 class NearestNeighborsRecommender:
 
     def __init__(self):
         self._data_provider = DataProvider()
-        self._spotify_web_api = SpotifyWebAPI()
         self._profile_creator = ProfileCreator()
         self._recommender_model = NearestNeighbors(
             n_neighbors=20,
@@ -35,62 +34,68 @@ class NearestNeighborsRecommender:
 
     def find_k_most_similar_tracks(
         self,
-        audio_features: TrackAudioFeatures,
-        exclude_tracks: Optional[List[EnhancedTrack]]
-    ) -> List[EnhancedTrack]:
-        """
-        Find the K most similar tracks, to the one provided
-        It can also be used with a constraint of a set of tracks to be avoided
+        track_vector: RepresentationVector,
+        exclude_tracks: Optional[List[Track]]
+    ) -> List[Track]:
+        """Find K most similar tracks based on representation vector
 
-        Returns: List[str] (All the spotify track ids)
+        Args:
+            track_vectors (RepresentationVector): repr vector
+            exclude_tracks (Optional[List[Track]]): tracks to be excluded
+
+        Returns:
+            List[Track]: neighbors found
         """
-        features = audio_features.to_numpy().reshape(1,-1)
-        features = self._normalizer.transform(
-            features
-        )
         
         neighbors = self._recommender_model.kneighbors(
-            features, 
+            track_vector, 
             return_distance=False
         )
 
-        return [self._tracks[ngbr] for ngbr in neighbors[0]]
+        return [self._data_provider.get_track(ngbr) for ngbr in neighbors[0]]
 
 
     def recommend_k_tracks_based_on_track_pool(
         self,
-        track_pool: List[EnhancedTrack]
-    ) -> List[EnhancedTrack]:
-        """
-        Recommend k tracks based on a track pool input
+        track_pool: List[Track]
+    ) -> List[Track]:
+        """Recommend K tracks based on a pool of tracks
 
-        Returns: List[str] (All the spotify track ids)
+        Args:
+            track_pool (List[Track]): track pool - set of track domain models
+
+        Returns:
+            List[Track]: recommendations
         """
+        track_pool_vectors = [
+            self._data_provider.get_track_representation_vector(track) for track in track_pool
+        ]
         eigen_tracks = self._profile_creator.create_profile_for_track_pool(
-            tracks=track_pool
+            tracks=track_pool_vectors
         )
         
         tracks_to_recommend = []
         for eigen_track in eigen_tracks:
             tracks_to_recommend += self.find_k_most_similar_tracks(
-                audio_features=eigen_track,
+                track_vectors=eigen_track,
                 exclude_tracks=track_pool
             )
 
+        # TODO: check for duplicates
         return tracks_to_recommend
 
 
     def recommend_k_tracks_for_playlist(
         self,
         playlist_id: str
-    ) -> List[EnhancedTrack]:
+    ) -> List[Track]:
 
-        enhanced_tracks = self._spotify_web_api.get_playlist_tracks_with_audio_features(
+        tracks = self._data_provider.get_playlist_tracks(
             playlist_id=playlist_id
         )
 
         recommended_tracks = self.recommend_k_tracks_based_on_track_pool(
-            track_pool=enhanced_tracks
+            track_pool=tracks
         )
 
         return recommended_tracks

@@ -6,9 +6,7 @@ from recommender_system.algorithm.nn_recommender import NearestNeighborsRecommen
 
 class MusicOs:
 
-    def __init__(
-        self
-    ):
+    def __init__(self):
         self.recommender = NearestNeighborsRecommender()
         self._spotify_web_api = SpotifyWebAPIUser()
 

@@ -3,7 +3,7 @@ import numpy as np
 from typing import List, get_type_hints
 from sklearn.cluster import DBSCAN
 
-from common.domain.models import Track
+from common.domain.models import Track, RepresentationVector
 
 
 class ProfileCreator:
@@ -29,8 +29,8 @@ class ProfileCreator:
 
     def create_profile_for_track_pool(
         self,
-        tracks: List[Track]
-    ) -> List[Track]:
+        tracks: List[RepresentationVector]
+    ) -> List[RepresentationVector]:
         """Representation vector creation
 
         Args:
@@ -43,14 +43,19 @@ class ProfileCreator:
             tracks
         )
         
-        # TODO: find centroids from clusters
-        cluster_ids = list(set(cluster_result))
-        centroids = []
-        for cluster_id in cluster_ids:
-            cluster_points = []
-            for cluster in cluster_result:
-                if track[cluster]
-        # TODO: return centroids
-        representation_vectors = ...
+        points_per_cluster = {}
+        for i, cluster in enumerate(cluster_result):
+            if cluster not in points_per_cluster:
+                points_per_cluster[cluster] = []
+            points_per_cluster[cluster].append(tracks[i])
+        
+        representation_vectors = []
+        for cluster in points_per_cluster.keys():
+            representation_vectors.append(
+                np.mean(
+                    np.array(points_per_cluster[cluster]), 
+                    axis=2
+                )
+            )
         
         return representation_vectors

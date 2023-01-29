@@ -56,7 +56,45 @@ class DataProcessor:
         return np.array(normalized_features)
     
     
-    def _create_track_representation_vectors(
+    def _create_track_representation_vector(
+        self,
+        track: Track,
+        tf_idf_features
+    ) -> RepresentationVector:
+        """Internal creator of track representation vectors
+
+        Args:
+            track (Track): track domain model
+            tf_idf_features (_type_): tf idf feature names
+
+        Returns:
+            RepresentationVector: output representation vector
+        """
+        concatenated_genres = " ".join([self.process_genre(genre) for genre in track.genres])
+            
+        genre_embedding = self.create_sentence_embedding(
+            sentence_tokenized=word_tokenize(concatenated_genres),
+            weights_per_word=self._tfidf.transform([concatenated_genres]).toarray().reshape(-1,), 
+            tfidf_vocab=tf_idf_features,
+            features_number=self.w2v_genre_features
+        )
+        
+        artist_embedding = np.array([np.nan] * self.w2v_artist_features)
+        
+        if track.id_artists[0].strip() in self._artist_embeddings.wv:
+            artist_embedding = self._artist_embeddings.wv[track.id_artists[0].strip()] 
+        
+        # combine information in a single vector
+        representation_vector = np.vstack(
+            self.normalize_features(track),
+            genre_embedding,
+            artist_embedding
+        )
+        
+        return representation_vector
+    
+    
+    def _initialize_track_representation_vectors(
         self,
         tracks: List[Track]
     ) -> List[RepresentationVector]:
@@ -82,32 +120,32 @@ class DataProcessor:
         tf_idf_features = list(self._tfidf.get_feature_names_out())
         
         representation_vectors = []
-        
         for track in tracks:
-            concatenated_genres = " ".join([self.process_genre(genre) for genre in track.genres])
-            
-            genre_embedding = self.create_sentence_embedding(
-                sentence_tokenized=word_tokenize(concatenated_genres),
-                weights_per_word=self._tfidf.transform([concatenated_genres]).toarray().reshape(-1,), 
-                tfidf_vocab=tf_idf_features,
-                features_number=self.w2v_genre_features
+            representation_vector = self._create_track_representation_vector(
+                track = track,
+                tf_idf_features = tf_idf_features
             )
-            
-            artist_embedding = np.array([np.nan] * self.w2v_artist_features)
-            
-            if track.id_artists[0].strip() in self._artist_embeddings.wv:
-                artist_embedding = self._artist_embeddings.wv[track.id_artists[0].strip()] 
-            
-            # combine information in a single vector
-            representation_vector = np.vstack(
-                self.normalize_features(track),
-                genre_embedding,
-                artist_embedding
-            )
-            
             representation_vectors.append(representation_vector)
             
         return representation_vectors
+    
+    
+    def create_track_representation_vector(
+        self,
+        track: Track
+    ) -> RepresentationVector:
+        """Wrapper for the internal creator of track representation vectors
+
+        Args:
+            track (Track): track domain model
+
+        Returns:
+            RepresentationVector: repr output
+        """
+        return self._create_track_representation_vector(
+            track = track,
+            tf_idf_features = list(self._tfidf.get_feature_names_out())
+        )
     
     
     def process_genre(self, genre: str) -> str:
