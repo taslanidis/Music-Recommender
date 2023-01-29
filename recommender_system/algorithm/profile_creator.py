@@ -1,90 +1,56 @@
 import numpy as np
 
-from typing import List, Optional, get_type_hints
-from numpy.typing import NDArray
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
+from typing import List, get_type_hints
+from sklearn.cluster import DBSCAN
 
-from common.data_transfer.models import EnhancedTrack, TrackAudioFeatures
+from common.domain.models import Track
 
 
 class ProfileCreator:
+    """Profile Creator
+    
+    Creates an eigen vector (representation vector) for a large set of vectors.
+    The final vectors will be the representatives of the set.
+    
+    On this implementation it is done with DBSCAN.
+    
+    Using hierarchial clustering (DBSCAN) can identify different groups distinctly characterized.
+    N-clusters identified, will provide us with N-centroids which will be used as N-representatives. 
+    """
+
 
     def __init__(self):
-        self._profiler = PCA(
-            n_components=1, #TODO: resarch on this
-            svd_solver='auto' #TODO: make this parametrizable
+        self._profiler = DBSCAN(
+            eps=0.1, 
+            metric='cosine', 
+            min_samples=5
         )
-        
-        self._normalizer = StandardScaler()
-
-        self._profiler_max_features = 6
-
-
-    def prepare_profiler(
-        self,
-        fit_data: List[TrackAudioFeatures]
-    ):
-        self._fit_normalizer(fit_data)
-        self._fit_profiler(fit_data)
-
-
-    def _fit_normalizer(
-        self,
-        fit_data: List[TrackAudioFeatures]
-    ):
-        self._normalizer.fit(
-            [data_point.to_numpy() for data_point in fit_data]
-        )
-
-
-    def _fit_profiler(
-        self,
-        fit_data: List[TrackAudioFeatures]
-    ):
-        data = np.array([data_point.to_numpy() for data_point in fit_data])
-
-        normalized_fit_data = self._normalizer.transform(
-            data
-        )
-
-        for k in range(len(normalized_fit_data) // self._profiler_max_features + 1):
-
-            batch_normalized_fit_data = np.transpose(normalized_fit_data[k:k+self._profiler_max_features])
-
-            self._profiler.fit(
-                batch_normalized_fit_data
-            )
 
 
     def create_profile_for_track_pool(
         self,
-        tracks: List[EnhancedTrack]
-    ) -> TrackAudioFeatures:
+        tracks: List[Track]
+    ) -> List[Track]:
+        """Representation vector creation
+
+        Args:
+            tracks (List[Track]): a set of tracks which will be later described by the representation vectors
+
+        Returns:
+            List[Track]: a set of representation vectors for all distinct groups in track pool
         """
-        Creates the eigen track for a list of tracks
-        Just like an eigen vector is for a matrix
-        """
-        normalized_tracks = self._normalizer.transform(
-            [data_point.audio_features.to_numpy() for data_point in tracks]
+        cluster_result = self._profiler.fit_predict(
+            tracks
         )
         
-        normalized_tracks = np.transpose(normalized_tracks)
-
-        normalized_track_pool_profile = self._profiler.transform(
-            normalized_tracks
-        )
+        # TODO: find centroids from clusters
+        cluster_ids = list(set(cluster_result))
+        centroids = []
+        for cluster_id in cluster_ids:
+            cluster_points = []
+            for cluster in cluster_result:
+                if track[cluster]
+        # TODO: return centroids
+        representation_vectors = ...
         
-        normalized_track_pool_profile = np.transpose(normalized_track_pool_profile)
-
-        track_pool_profile = self._normalizer.inverse_transform(
-            normalized_track_pool_profile
-        )
-
-        fields = get_type_hints(TrackAudioFeatures)
-        return TrackAudioFeatures(
-            **{
-                field_name: value if field_type != int else np.round(value) 
-                    for field_name, field_type, value in zip(fields.keys(), fields.values(), track_pool_profile[0])
-            }
-        )
+        return representation_vectors

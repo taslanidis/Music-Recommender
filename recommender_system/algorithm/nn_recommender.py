@@ -1,11 +1,9 @@
-import numpy as np
-
 from typing import List, Optional
+from numpy.typing import NDArray
 from sklearn.neighbors import NearestNeighbors
-from sklearn.preprocessing import StandardScaler
 
 from recommender_system.algorithm.profile_creator import ProfileCreator
-from common.domain.models import Track, Artist
+from recommender_system.data_engineering.data_provider import DataProvider
 from spotify_connectors.spotify_web_api import SpotifyWebAPI
 
 
@@ -15,46 +13,24 @@ class NearestNeighborsRecommender:
         self._data_provider = DataProvider()
         self._spotify_web_api = SpotifyWebAPI()
         self._profile_creator = ProfileCreator()
-        self._profile_creator.prepare_profiler(
-            fit_data=[track.audio_features for track in self._data_provider.get_all_available_tracks()]
-        )
         self._recommender_model = NearestNeighbors(
             n_neighbors=20,
             metric='cosine'
         )
-        self._normalizer = StandardScaler()
         self.prepare_recommender()
 
 
     def prepare_recommender(self):
-        self._fit_normalizer(
-            [track.get_normalizable_part() for track in self._data_provider.get_all_available_tracks()]
-        )
         self._fit_model(
-            [track.get_normalizable_part() for track in self._data_provider.get_all_available_tracks()]
-        )
-
-    
-    def _fit_normalizer(
-        self,
-        fit_data: List[TrackAudioFeatures]
-    ):
-        self._normalizer.fit(
-            [data_point.to_numpy() for data_point in fit_data]
+            [track_repr_vector for track_repr_vector in self._data_provider.get_all_representation_vectors()]
         )
 
 
     def _fit_model(
         self,
-        fit_data: List[TrackAudioFeatures]
+        fit_data: List[NDArray]
     ):
-        normalized_fit_data = self._normalizer.transform(
-            [data_point.to_numpy() for data_point in fit_data]
-        )
-
-        self._recommender_model.fit(
-            normalized_fit_data
-        )
+        self._recommender_model.fit(fit_data)
 
 
     def find_k_most_similar_tracks(
@@ -90,14 +66,16 @@ class NearestNeighborsRecommender:
 
         Returns: List[str] (All the spotify track ids)
         """
-        eigen_track = self._profile_creator.create_profile_for_track_pool(
+        eigen_tracks = self._profile_creator.create_profile_for_track_pool(
             tracks=track_pool
         )
-
-        tracks_to_recommend = self.find_k_most_similar_tracks(
-            audio_features=eigen_track,
-            exclude_tracks=track_pool
-        )
+        
+        tracks_to_recommend = []
+        for eigen_track in eigen_tracks:
+            tracks_to_recommend += self.find_k_most_similar_tracks(
+                audio_features=eigen_track,
+                exclude_tracks=track_pool
+            )
 
         return tracks_to_recommend
 
