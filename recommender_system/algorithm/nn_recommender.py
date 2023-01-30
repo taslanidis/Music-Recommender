@@ -80,13 +80,20 @@ class NearestNeighborsRecommender:
         )
         
         tracks_to_recommend = []
+        unique_recommendation_ids = []
         for eigen_track in eigen_tracks:
-            tracks_to_recommend += self.find_k_most_similar_tracks(
+            # get recommendations
+            similar_tracks = self.find_k_most_similar_tracks(
                 track_vectors=eigen_track,
                 exclude_tracks=track_pool
             )
 
-        # TODO: check for duplicates
+            # keep unique recommendations
+            for track in similar_tracks:
+                if track.id not in unique_recommendation_ids:
+                    unique_recommendation_ids.append(track.id)
+                    tracks_to_recommend.append(track)
+
         return tracks_to_recommend
 
 

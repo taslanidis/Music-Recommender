@@ -4,6 +4,7 @@ from typing import Dict, List
 
 from common.database.local_storage import LocalStorage
 from common.domain.models import Track, Artist, RepresentationVector
+from common.converters.interfaces import TrackConversionInterface
 from recommender_system.data_engineering.data_processing import DataProcessor
 from spotify_connectors.spotify_web_api import SpotifyWebAPI
 
@@ -36,10 +37,21 @@ class DataProvider:
         return self._artists
 
 
-    def get_track(self, track_id: str) -> List[Track]:
-        #TODO: hit spotify api to store it if not exists
+    def get_track(self, track_id: str) -> Track:
+        if track_id not in self._tracks:
+            self._tracks[track_id] = TrackConversionInterface.convert_dto_to_domain(
+                self._spotify_web_api.get_track(track_id)
+            )
         return self._tracks[track_id]
     
+    
+    def get_artist(sel, artist_id: str) -> Artist:
+        if artist_id not in self._artists:
+            self._artists[artist_id] = ArtistConversionInterface.convert_dto_to_domain(
+                self._spotify_web_api.get_artist(artist_id)
+            )
+        return self._artists[artist_id]
+
 
     def get_all_representation_vectors(self):
         return self._track_representation_vectors
@@ -49,10 +61,25 @@ class DataProvider:
         enhanced_tracks = self._spotify_web_api.get_playlist_tracks_with_audio_features(
             playlist_id=playlist_id
         )
-        
+
+        # Append extra information for artists - needed for domain models
+        # If artists does not exist in our DB, hit spotify API
+        for track in enhanced_tracks:
+            artist_domain_models = []
+            for artist in track.artists:
+                artist_domain_models.append(
+                    self.get_artist(artist.id)
+                )
+            track.artists = artist_domain_models
+
         # Create Track domain model from dto
-        tracks = ...
+        tracks = [TrackConversionInterface.convert_dto_to_domain(track) for track in enhanced_tracks]
         
+        # append tracks in local db
+        for track in tracks:
+            if track.id not in self._tracks:
+                self._tracks.append(track)
+
         return tracks
     
     
@@ -60,8 +87,10 @@ class DataProvider:
         self,
         track: Track
     ) -> RepresentationVector:
-        #TODO: hit spotify api to store it if not exists
+
         if track.id in self._track_representation_vectors:
             return self._track_representation_vectors[track.id]
         
-        return self._data_processor.create_track_representation_vector(track)
+        self._track_representation_vectors[track.id] = self._data_processor.create_track_representation_vector(track)
+        
+        return self._track_representation_vectors[track.id]
