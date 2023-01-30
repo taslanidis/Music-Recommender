@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from spotify_connectors.spotify_web_api_user import SpotifyWebAPIUser
 from recommender_system.algorithm.nn_recommender import NearestNeighborsRecommender
+from recommender_system.session.listening_session import MusicListeningSession
 
 
 class MusicOs:

@@ -19,8 +19,8 @@ class LocalStorage(DefaultDb):
         self._settings = get_settings()
         self._track_path = self._settings.track_local_stored_path
         self._artist_path = self._settings.artist_local_stored_path
-        self._artists = self._load_artists()
-        self._tracks = self._load_tracks()
+        self._artists = self.load_artists()
+        self._tracks = self.load_tracks()
     
     
     def get_all_tracks_csv(self) -> pd.DataFrame:
@@ -58,7 +58,7 @@ class LocalStorage(DefaultDb):
         return df_db_artists
 
 
-    def _load_tracks(self) -> Dict[str, Track]:
+    def load_tracks(self) -> Dict[str, Track]:
         """Load all tracks from local storage DB
         """
         if self._artists is None:
@@ -67,27 +67,29 @@ class LocalStorage(DefaultDb):
                     )
 
         df_db_tracks = self.get_all_tracks_csv()
-        tracks = df_db_tracks.set_index('id').to_dict(orient='index')
+        tracks = df_db_tracks.to_dict(orient='records')
         
         # fill calculated fields for tracks
         for track in tqdm(tracks, desc='Processing tracks'):
-            track['genres'] = self.get_genres_for_artists(tracks['id_artists'])
+            track['genres'] = self.get_genres_for_artists(track['id_artists'])
             track['artist_popularity'] = self.get_popularity_for_artists(track['id_artists'])
             track['artist_mean_popularity'] = np.mean(track['artist_popularity']) if len(track['artist_popularity']) > 0 else np.nan
             track['artist_max_popularity'] = np.max(track['artist_popularity']) if len(track['artist_popularity']) > 0 else np.nan
             track['track_age'] = (datetime.today() - track['release_date']).total_seconds()//(365*24*3600)
         
-        return {track_id: Track(**track) for track_id, track in tracks.items()}
+        return {track['id']: Track(**track) for track in tracks}
 
 
-    def _load_artists(self) -> Dict[str, Artist]:
+    def load_artists(self) -> Dict[str, Artist]:
         """Load all artists from local storage DB
 
         Returns:
             Dict[str, Artist]: Dictionary with artist_id: Artist
         """
         df_db_artists = self.get_all_artists_csv()
-        return {record['id']: Artist(**record) for record in df_db_artists.to_dict(orient='records')}
+        return {
+            record['id']: Artist(**record) for record in tqdm(df_db_artists.to_dict(orient='records'), desc="Processing artists")
+        }
 
 
     def get_genres_for_artists(
@@ -129,3 +131,11 @@ class LocalStorage(DefaultDb):
             popularity += [self._artists[artist_id].popularity] if artist_id in self._artists else []
         
         return popularity
+    
+    
+    def get_tracks(self):
+        return self._tracks
+    
+    
+    def get_artists(self):
+        return self._artists

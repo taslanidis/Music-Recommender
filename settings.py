@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     
     artist_embeddings: str
     genre_embeddings: str
-
+    genre_embeddings_size: int = 16
+    artist_embeddings_size: int = 16
+    
     track_local_stored_path: str = None
     artist_local_stored_path: str = None
 

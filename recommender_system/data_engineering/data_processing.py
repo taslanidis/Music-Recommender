@@ -6,7 +6,9 @@ from gensim.models import Word2Vec
 from nltk.tokenize import word_tokenize
 from typing import List, Dict
 from numpy.typing import NDArray
+from tqdm import tqdm
 
+from settings import get_settings
 from common.domain.models import Track, RepresentationVector
 
 
@@ -20,11 +22,12 @@ class DataProcessor:
     scalers: Dict[str, MinMaxScaler] = None
     
     def __init__(self):
-        self._genre_embeddings = Word2Vec.load("./models/genre_embeddings_v1.model")
-        self._artist_embeddings = Word2Vec.load("./models/artist_embedding_v1.model")
+        self._settings = get_settings()
+        self._genre_embeddings = Word2Vec.load(self._settings.genre_embeddings)
+        self._artist_embeddings = Word2Vec.load(self._settings.artist_embeddings)
         self._tfidf = TfidfVectorizer(tokenizer=word_tokenize)
-        self.w2v_genre_features = 16
-        self.w2v_artist_features = 16
+        self.w2v_genre_features = self._settings.genre_embeddings_size
+        self.w2v_artist_features = self._settings.artist_embeddings_size
         self.scalers = {}
     
     
@@ -34,7 +37,7 @@ class DataProcessor:
         Args:
             tracks (List[Track]): set of track to fit normalizer
         """
-        for feature in Track.scaled_features:
+        for feature in tqdm(Track.__scaled_features__, desc="Fitting normalizer"):
             self.scalers[feature] = MinMaxScaler()
             feature_array = np.array([getattr(track, feature) for track in tracks]).reshape(-1,1)
             self.scalers[feature].fit(feature_array)
@@ -50,10 +53,9 @@ class DataProcessor:
             NDArray: normalized
         """
         normalized_features = []
-        for feature in Track.scaled_features:
-            normalized_features.append(self.scalers[feature].transform(getattr(track, feature)))
-        
-        return np.array(normalized_features)
+        for feature in Track.__scaled_features__:
+            normalized_features.append(self.scalers[feature].transform(np.array([getattr(track, feature)]).reshape(1, -1))[0])
+        return np.array(normalized_features).reshape(-1,)
     
     
     def _create_track_representation_vector(
@@ -83,21 +85,22 @@ class DataProcessor:
         
         if track.id_artists[0].strip() in self._artist_embeddings.wv:
             artist_embedding = self._artist_embeddings.wv[track.id_artists[0].strip()] 
-        
+
         # combine information in a single vector
-        representation_vector = np.vstack(
-            self.normalize_features(track),
-            genre_embedding,
-            artist_embedding
+        representation_vector = np.hstack(
+            [
+                self.normalize_features(track),
+                genre_embedding,
+                artist_embedding
+            ]
         )
-        
         return representation_vector
     
     
     def _initialize_track_representation_vectors(
         self,
         tracks: List[Track]
-    ) -> List[RepresentationVector]:
+    ) -> Dict[str, RepresentationVector]:
         """Generates representation vectors for all tracks.
         
         Combines track info, genre embeddings and artist embeddings.
@@ -110,22 +113,21 @@ class DataProcessor:
         """
         vocab = list(set(
             [
-                token for track in tracks \
-                    for genres in track.genres \
-                    for genre in genres \
+                token for track in tqdm(tracks, desc="Creating vocab for genres") \
+                    for genre in track.genres \
                     for token in word_tokenize(self.process_genre(genre))
             ]
         ))
         self._tfidf.fit(vocab)
         tf_idf_features = list(self._tfidf.get_feature_names_out())
         
-        representation_vectors = []
-        for track in tracks:
+        representation_vectors = {}
+        for track in tqdm(tracks, desc="Creating Track Vectors"):
             representation_vector = self._create_track_representation_vector(
                 track = track,
                 tf_idf_features = tf_idf_features
             )
-            representation_vectors.append(representation_vector)
+            representation_vectors[track.id] = representation_vector
             
         return representation_vectors
     

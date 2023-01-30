@@ -1,10 +1,14 @@
-from common.domain.models import Track
+import numpy as np
 
+from typing import List
+from collections import Counter
+
+from common.domain.models import Track
 
 class MusicListeningSession:
 
     # keeping duplicates as weights
-    self._track_pool: List[Track]
+    _track_pool: List[Track]
 
     def __init__(self):
         self._track_pool = []
@@ -22,6 +26,16 @@ class MusicListeningSession:
         self._track_pool.extend(tracks)
 
     
+    def calculate_genre_frequency(self):
+        top_genres = {}
+        for track in self._track_pool:
+            for genre in track.genres:
+                if genre not in top_genres:
+                    top_genres[genre] = 0
+                top_genres[genre] += 1
+        return dict(Counter(top_genres).most_common(5))
+    
+    
     def get_session_statistics(self):
         return {
             'danceability_mean': np.mean([track.danceability for track in self._track_pool]),
@@ -30,5 +44,5 @@ class MusicListeningSession:
             'instrumentalness_mean': np.mean([track.instrumentalness for track in self._track_pool]),
             'tempo_mean': np.mean([track.tempo for track in self._track_pool]),
             'track_number': len(self._track_pool),
-            'top_artists'
+            'top_genres': self.calculate_genre_frequency()
         }

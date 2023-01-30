@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from common.database.local_storage import LocalStorage
 from common.domain.models import Track, Artist, RepresentationVector
-from common.converters.interfaces import TrackConversionInterface
+from common.converters.interfaces import TrackConversionInterface, ArtistConversionInterface
 from recommender_system.data_engineering.data_processing import DataProcessor
 from spotify_connectors.spotify_web_api import SpotifyWebAPI
 
@@ -19,10 +19,10 @@ class DataProvider:
         self._db = LocalStorage()
         self._spotify_web_api = SpotifyWebAPI()
         self._data_processor = DataProcessor()
-        self._tracks = self._db.load_tracks()
-        self._artists = self._db.load_artists()
+        self._tracks = self._db.get_tracks()
+        self._artists = self._db.get_artists()
             
-        self._data_processor.fit_normalizer(self._tracks)
+        self._data_processor.fit_normalizer(self._tracks.values())
         
         self._track_representation_vectors = self._data_processor._initialize_track_representation_vectors(
             self._tracks.values()
@@ -39,16 +39,17 @@ class DataProvider:
 
     def get_track(self, track_id: str) -> Track:
         if track_id not in self._tracks:
+            # TODO: needs thought
             self._tracks[track_id] = TrackConversionInterface.convert_dto_to_domain(
                 self._spotify_web_api.get_track(track_id)
             )
         return self._tracks[track_id]
     
     
-    def get_artist(sel, artist_id: str) -> Artist:
+    def get_artist(self, artist_id: str) -> Artist:
         if artist_id not in self._artists:
             self._artists[artist_id] = ArtistConversionInterface.convert_dto_to_domain(
-                self._spotify_web_api.get_artist(artist_id)
+                self._spotify_web_api.get_artists(artist_id)[0]
             )
         return self._artists[artist_id]
 

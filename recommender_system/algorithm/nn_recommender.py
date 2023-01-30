@@ -1,3 +1,5 @@
+import numpy as np
+
 from typing import List, Optional
 from numpy.typing import NDArray
 from sklearn.neighbors import NearestNeighbors
@@ -24,7 +26,7 @@ class NearestNeighborsRecommender:
         track_vectors = self._data_provider.get_all_representation_vectors()
         self._fit_data_keys = list(track_vectors.keys())
         self._fit_model(
-            [track_repr_vector for track_repr_vector in track_vectors.values()]
+            [np.nan_to_num(track_repr_vector, nan=-1) for track_repr_vector in track_vectors.values()]
         )
 
 
