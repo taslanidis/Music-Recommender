@@ -1,6 +1,10 @@
 # Music Recommender
 A highly adaptable music recommendation engine. Provide music recommendations based on a dynamic input environment.
 
+![Dashboard](docs/app_main_page.png)
+
+## The Idea
+
 ![Example](docs/example.png)
 
 
