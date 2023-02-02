@@ -19,7 +19,24 @@ class MusicOs:
 
     def add_playlist_to_session(self, playlist_id: str):
         tracks = self.recommender._data_provider.get_playlist_tracks(playlist_id)
-        self._session.add(tracks)
+        self._session.add_to_pool(tracks)
+        
+    
+    def get_track_pool_clusters(self):
+        tracks = self._session.get_track_pool()
+        vectors = self.recommender.get_track_pool_vectors(tracks)
+        tsne_with_cluster = self.recommender._profile_creator.get_tsne_points_with_cluster(vectors)
+        
+        track_ids = list(vectors.keys())
+        track_pool_clusters = []
+        for tsne_point, track_id in zip(tsne_with_cluster, track_ids):
+            track_pool_clusters.append({
+                'track_id': track_id,
+                'cluster': tsne_point[1],
+                'tsne_coordinate': tsne_point[0]
+            })
+            
+        return track_pool_clusters
 
 
     def generate_session_recommendations(

@@ -1,7 +1,9 @@
 import numpy as np
 
-from typing import List, get_type_hints
+from numpy.typing import NDArray
+from typing import List, get_type_hints, Tuple
 from sklearn.cluster import DBSCAN
+from sklearn.manifold import TSNE
 
 from common.domain.models import Track, RepresentationVector
 
@@ -59,3 +61,18 @@ class ProfileCreator:
             )
         
         return representation_vectors
+    
+    
+    def get_tsne_points_with_cluster(
+        self, 
+        tracks: List[RepresentationVector]
+    ) -> List[Tuple[NDArray, int]]:
+        
+        cluster_result = self._profiler.fit_predict(
+            tracks
+        )
+    
+        tsne_model = TSNE(perplexity=10, n_components=2, init='pca', n_iter=2500, random_state=23)
+        tsne_reduced_output = tsne_model.fit_transform(tracks)
+        
+        return list(zip(tsne_reduced_output, cluster_result))

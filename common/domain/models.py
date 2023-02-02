@@ -54,3 +54,9 @@ class Artist(BaseModel):
 
 
 class RepresentationVector(np.ndarray): pass
+
+
+class RecommendedTrack(BaseModel):
+    track: Track
+    score: float
+    category: int

@@ -73,6 +73,7 @@ class LocalStorage(DefaultDb):
         for track in tqdm(tracks, desc='Processing tracks'):
             track['genres'] = self.get_genres_for_artists(track['id_artists'])
             track['artist_popularity'] = self.get_popularity_for_artists(track['id_artists'])
+            track['name_artists'] = self.get_names_for_artists(track['id_artists'])
             track['artist_mean_popularity'] = np.mean(track['artist_popularity']) if len(track['artist_popularity']) > 0 else np.nan
             track['artist_max_popularity'] = np.max(track['artist_popularity']) if len(track['artist_popularity']) > 0 else np.nan
             track['track_age'] = (datetime.today() - track['release_date']).total_seconds()//(365*24*3600)
@@ -110,7 +111,7 @@ class LocalStorage(DefaultDb):
         for artist_id in id_artists:
             genres += self._artists[artist_id].genres if artist_id in self._artists else []
         
-        return genres
+        return [genre.strip() for genre in genres if genre != ""]
 
 
     def get_popularity_for_artists(
@@ -131,6 +132,26 @@ class LocalStorage(DefaultDb):
             popularity += [self._artists[artist_id].popularity] if artist_id in self._artists else []
         
         return popularity
+    
+    
+    def get_names_for_artists(
+        self,
+        id_artists: List[str]
+    ) -> List[str]:
+        """Extract the names for a set of artists
+
+        Args:
+            id_artists (List[str]): artist ids
+
+        Returns:
+            List[int]: A list with each artist's name
+        """
+        names = []
+        
+        for artist_id in id_artists:
+            names += [self._artists[artist_id].name] if artist_id in self._artists else []
+        
+        return names
     
     
     def get_tracks(self):

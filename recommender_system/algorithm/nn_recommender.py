@@ -1,12 +1,18 @@
 import numpy as np
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 from numpy.typing import NDArray
 from sklearn.neighbors import NearestNeighbors
 
 from recommender_system.algorithm.profile_creator import ProfileCreator
+from recommender_system.algorithm.curator import MusicCurator
 from recommender_system.data_engineering.data_provider import DataProvider
-from common.domain.models import Track, Artist, RepresentationVector
+from common.domain.models import (
+    Track, 
+    Artist, 
+    RepresentationVector, 
+    RecommendedTrack
+)
 
 
 class NearestNeighborsRecommender:
@@ -18,6 +24,7 @@ class NearestNeighborsRecommender:
             n_neighbors=20,
             metric='cosine'
         )
+        self._curator = MusicCurator()
         self._fit_data_keys: List[str] = None
         self.prepare_recommender()
 
@@ -39,9 +46,10 @@ class NearestNeighborsRecommender:
 
     def find_k_most_similar_tracks(
         self,
+        category: int,
         track_vector: RepresentationVector,
         exclude_tracks: Optional[List[Track]]
-    ) -> List[Track]:
+    ) -> List[RecommendedTrack]:
         """Find K most similar tracks based on representation vector
 
         Args:
@@ -49,17 +57,36 @@ class NearestNeighborsRecommender:
             exclude_tracks (Optional[List[Track]]): tracks to be excluded
 
         Returns:
-            List[Track]: neighbors found
+            List[RecommendedTrack]: neighbors found, with score and category
         """
         
-        neighbors = self._recommender_model.kneighbors(
+        distances, neighbors = self._recommender_model.kneighbors(
             track_vector.reshape(1, -1), 
-            return_distance=False
+            return_distance=True
         )
 
         return [
-            self._data_provider.get_track(self._fit_data_keys[ngbr]) for ngbr in neighbors[0]
+            RecommendedTrack(
+                track=self._data_provider.get_track(self._fit_data_keys[ngbr]),
+                score=distance,
+                category=category
+            )   for distance, ngbr in zip(distances[0], neighbors[0])
         ]
+
+
+    def get_track_pool_vectors(
+        self,
+        track_pool: List[Track]
+    ) -> Dict[str, RepresentationVector]:
+        
+        track_pool_vectors = {}
+        for track in track_pool:
+            vector = self._data_provider.get_track_representation_vector(track)
+            
+            if vector is not None:
+                track_pool_vectors[track.id] = vector
+                
+        return track_pool_vectors
 
 
     def recommend_k_tracks_based_on_track_pool(
@@ -74,33 +101,25 @@ class NearestNeighborsRecommender:
         Returns:
             List[Track]: recommendations
         """
-        track_pool_vectors = []
-        for track in track_pool:
-            vector = self._data_provider.get_track_representation_vector(track)
-            
-            if vector is not None:
-                track_pool_vectors.append(vector)
+        track_pool_vectors = self.get_track_pool_vectors(track_pool)
         
         eigen_tracks = self._profile_creator.create_profile_for_track_pool(
-            tracks=track_pool_vectors
+            tracks=list(track_pool_vectors.values())
         )
         
         tracks_to_recommend = []
-        unique_recommendation_ids = []
-        for eigen_track in eigen_tracks:
+        for category, eigen_track in enumerate(eigen_tracks):
             # get recommendations
-            similar_tracks: List[Track] = self.find_k_most_similar_tracks(
+            similar_tracks: List[RecommendedTrack] = self.find_k_most_similar_tracks(
+                category=category,
                 track_vector=eigen_track,
                 exclude_tracks=track_pool
             )
+            tracks_to_recommend.extend(similar_tracks)
 
-            # keep unique recommendations
-            for track in similar_tracks:
-                if track.id not in unique_recommendation_ids:
-                    unique_recommendation_ids.append(track.id)
-                    tracks_to_recommend.append(track)
+        curated_recommendations = self._curator.curate_recommendation_list(tracks_to_recommend)
 
-        return tracks_to_recommend
+        return curated_recommendations
 
 
     def recommend_k_tracks_for_playlist(
