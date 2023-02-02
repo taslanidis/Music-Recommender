@@ -53,7 +53,7 @@ class NearestNeighborsRecommender:
         """
         
         neighbors = self._recommender_model.kneighbors(
-            track_vector, 
+            track_vector.reshape(1, -1), 
             return_distance=False
         )
 
@@ -74,9 +74,13 @@ class NearestNeighborsRecommender:
         Returns:
             List[Track]: recommendations
         """
-        track_pool_vectors = [
-            self._data_provider.get_track_representation_vector(track) for track in track_pool
-        ]
+        track_pool_vectors = []
+        for track in track_pool:
+            vector = self._data_provider.get_track_representation_vector(track)
+            
+            if vector is not None:
+                track_pool_vectors.append(vector)
+        
         eigen_tracks = self._profile_creator.create_profile_for_track_pool(
             tracks=track_pool_vectors
         )
@@ -85,8 +89,8 @@ class NearestNeighborsRecommender:
         unique_recommendation_ids = []
         for eigen_track in eigen_tracks:
             # get recommendations
-            similar_tracks = self.find_k_most_similar_tracks(
-                track_vectors=eigen_track,
+            similar_tracks: List[Track] = self.find_k_most_similar_tracks(
+                track_vector=eigen_track,
                 exclude_tracks=track_pool
             )
 

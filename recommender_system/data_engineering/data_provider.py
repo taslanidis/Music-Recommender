@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from common.database.local_storage import LocalStorage
 from common.domain.models import Track, Artist, RepresentationVector
@@ -39,7 +39,7 @@ class DataProvider:
 
     def get_track(self, track_id: str) -> Track:
         if track_id not in self._tracks:
-            # TODO: needs thought
+            # TODO: needs thought (get genres in converters)
             self._tracks[track_id] = TrackConversionInterface.convert_dto_to_domain(
                 self._spotify_web_api.get_track(track_id)
             )
@@ -49,7 +49,7 @@ class DataProvider:
     def get_artist(self, artist_id: str) -> Artist:
         if artist_id not in self._artists:
             self._artists[artist_id] = ArtistConversionInterface.convert_dto_to_domain(
-                self._spotify_web_api.get_artists(artist_id)[0]
+                self._spotify_web_api.get_artists([artist_id])[0]
             )
         return self._artists[artist_id]
 
@@ -79,7 +79,7 @@ class DataProvider:
         # append tracks in local db
         for track in tracks:
             if track.id not in self._tracks:
-                self._tracks.append(track)
+                self._tracks[track.id] = track
 
         return tracks
     
@@ -87,7 +87,7 @@ class DataProvider:
     def get_track_representation_vector(
         self,
         track: Track
-    ) -> RepresentationVector:
+    ) -> Optional[RepresentationVector]:
 
         if track.id in self._track_representation_vectors:
             return self._track_representation_vectors[track.id]

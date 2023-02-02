@@ -38,7 +38,7 @@ class MusicOs:
                 tracks_id=[track.id for track in recommendations]
             )
 
-        return [(track.artists[0].name, track.name) for track in recommendations]
+        return [(track.name_artists[0], track.name) for track in recommendations]
 
 
     def recommend_k_tracks_for_playlist(
@@ -59,7 +59,7 @@ class MusicOs:
                 tracks_id=[track.id for track in recommendations]
             )
 
-        return [(track.artists[0].name, track.name) for track in recommendations]
+        return [(track.name_artists[0], track.name) for track in recommendations]
 
     
     def get_session_stats(self):

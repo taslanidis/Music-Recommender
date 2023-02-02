@@ -22,6 +22,10 @@ matplotlib = "*"
 gensim = "*"
 scrapy = "*"
 ipykernel = "*"
+dash = "*"
+dash-core-components = "*"
+dash-html-components = "*"
+dash-bootstrap-components = "*"
 
 [dev-packages]
 ipykernel = "*"

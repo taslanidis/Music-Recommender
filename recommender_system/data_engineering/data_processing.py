@@ -1,10 +1,11 @@
 import numpy as np
+import pandas as pd
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MinMaxScaler
 from gensim.models import Word2Vec
 from nltk.tokenize import word_tokenize
-from typing import List, Dict
+from typing import List, Dict, Optional
 from numpy.typing import NDArray
 from tqdm import tqdm
 
@@ -62,7 +63,7 @@ class DataProcessor:
         self,
         track: Track,
         tf_idf_features
-    ) -> RepresentationVector:
+    ) -> Optional[RepresentationVector]:
         """Internal creator of track representation vectors
 
         Args:
@@ -84,7 +85,7 @@ class DataProcessor:
         artist_embedding = np.array([np.nan] * self.w2v_artist_features)
         
         if track.id_artists[0].strip() in self._artist_embeddings.wv:
-            artist_embedding = self._artist_embeddings.wv[track.id_artists[0].strip()] 
+            artist_embedding = self._artist_embeddings.wv.get_vector(track.id_artists[0].strip(), norm=True)
 
         # combine information in a single vector
         representation_vector = np.hstack(
@@ -94,6 +95,11 @@ class DataProcessor:
                 artist_embedding
             ]
         )
+
+        if np.isnan(representation_vector).any():
+            # contains NaN values
+            return None
+
         return representation_vector
     
     
@@ -111,24 +117,51 @@ class DataProcessor:
         Returns:
             List[RepresentationVector]: List of representation vectors for each track
         """
-        vocab = list(set(
-            [
-                token for track in tqdm(tracks, desc="Creating vocab for genres") \
-                    for genre in track.genres \
-                    for token in word_tokenize(self.process_genre(genre))
-            ]
-        ))
+        try:
+            df = pd.read_csv('./dataset/genres_vocab.csv')
+            vocab = df['word'].to_list()
+        
+        except Exception:
+        
+            vocab = list(set(
+                [
+                    token for track in tqdm(tracks, desc="Creating vocab for genres") \
+                        for genre in track.genres \
+                        for token in word_tokenize(self.process_genre(genre))
+                ]
+            ))
+            
+            df = pd.DataFrame(vocab, columns=['word'])
+            df.to_csv('./dataset/genres_vocab.csv', index=False)
+            
         self._tfidf.fit(vocab)
         tf_idf_features = list(self._tfidf.get_feature_names_out())
         
-        representation_vectors = {}
-        for track in tqdm(tracks, desc="Creating Track Vectors"):
-            representation_vector = self._create_track_representation_vector(
-                track = track,
-                tf_idf_features = tf_idf_features
-            )
-            representation_vectors[track.id] = representation_vector
+        try:
+            representation_vectors = pd.read_csv('./dataset/track_vectors.csv')
+            representation_vectors.set_index('id', inplace=True)
+            representation_vectors = representation_vectors.to_dict(orient='index')
+            representation_vectors = {
+                key: np.array(list(vector.values())) for key, vector in representation_vectors.items()
+            }
+        
+        except Exception:
+            representation_vectors = {}
             
+            for track in tqdm(tracks, desc="Creating Track Vectors"):
+                representation_vector = self._create_track_representation_vector(
+                    track = track,
+                    tf_idf_features = tf_idf_features
+                )
+                
+                if representation_vector is not None:
+                    representation_vectors[track.id] = representation_vector
+                
+            df = pd.DataFrame(list(representation_vectors.values()), columns=[f"w{i+1}" for i in range(len(representation_vector))])
+            df['id'] = list(representation_vectors.keys())
+            df.set_index('id', inplace=True)
+            df.to_csv('./dataset/track_vectors.csv')
+        
         return representation_vectors
     
     
@@ -177,7 +210,7 @@ class DataProcessor:
         sentence_vector = np.zeros(features_number,)
         for word in sentence_tokenized:
             weight = weights_per_word[tfidf_vocab.index(word)]
-            word_vector = self._genre_embeddings.wv[word]
+            word_vector = self._genre_embeddings.wv.get_vector(word, norm=True)
             word_vector = word_vector * weight
             sentence_vector += word_vector
 

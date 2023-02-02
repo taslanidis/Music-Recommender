@@ -54,7 +54,7 @@ class ProfileCreator:
             representation_vectors.append(
                 np.mean(
                     np.array(points_per_cluster[cluster]), 
-                    axis=2
+                    axis=0
                 )
             )
         

@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 class Track(BaseModel):
     id: str = None
+    name: str = None
     release_date: datetime = None
     track_age: float = None
     popularity: float = None
@@ -24,6 +25,7 @@ class Track(BaseModel):
     artist_max_popularity: float = None
     genres: List[str] = None
     id_artists: List[str] = None
+    name_artists: List[str] = None
 
     __scaled_features__ = [
         'track_age',
@@ -46,11 +48,9 @@ class Track(BaseModel):
 
 class Artist(BaseModel):
     id: str
-    followers: Optional[float] = None
     genres: List[str] = None
     name: str
     popularity: float
 
 
-class RepresentationVector(np.ndarray):
-    pass
+class RepresentationVector(np.ndarray): pass

@@ -110,7 +110,7 @@ class LocalStorage(DefaultDb):
         for artist_id in id_artists:
             genres += self._artists[artist_id].genres if artist_id in self._artists else []
         
-        return list(set(genres))
+        return genres
 
 
     def get_popularity_for_artists(

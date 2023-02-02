@@ -13,7 +13,6 @@ class Artist(BaseModel):
     name: str
     type: str
     uri: str
-    followers: int
     genres: List[str] = None
     name: str
     popularity: Optional[float] = None
