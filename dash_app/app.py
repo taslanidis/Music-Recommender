@@ -47,7 +47,38 @@ app.layout = dbc.Container(
             ]
         ), # menu bar
         dbc.Row(
-            children=[]
+            children=[
+                dbc.Col(
+                    children=[
+                        dbc.Card(
+                            [
+                                html.H5("Session settings")
+                            ]
+                        )
+                    ]
+                ),
+                dbc.Col(
+                    children=[
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText("@"),
+                                dbc.Input(placeholder="Playlist ID", type="string"),
+                                dbc.Button("Submit", id="input-group-button", n_clicks=0)
+                            ],
+                            className="mb-3",
+                        )
+                    ]
+                ),
+                dbc.Col(
+                    children=[
+                        dbc.Button(
+                            "Reset listening session",
+                            id="reset_listening_session"
+                        )
+                    ]
+                )
+            ],
+            style={"margin-top": "20px"}
         ), # control menu
         dbc.Row(
             children=[]

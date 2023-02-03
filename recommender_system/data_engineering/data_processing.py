@@ -22,13 +22,16 @@ class DataProcessor:
     """
     scalers: Dict[str, MinMaxScaler] = None
     
-    def __init__(self):
+    def __init__(self, track_features_weight: int = 1):
         self._settings = get_settings()
         self._genre_embeddings = Word2Vec.load(self._settings.genre_embeddings)
         self._artist_embeddings = Word2Vec.load(self._settings.artist_embeddings)
         self._tfidf = TfidfVectorizer(tokenizer=word_tokenize)
         self.w2v_genre_features = self._settings.genre_embeddings_size
         self.w2v_artist_features = self._settings.artist_embeddings_size
+        self._track_features_weight = track_features_weight
+        self._genre_weight = 1
+        self._artist_weight = 1
         self.scalers = {}
     
     
@@ -90,7 +93,7 @@ class DataProcessor:
         # combine information in a single vector
         representation_vector = np.hstack(
             [
-                self.normalize_features(track),
+                self.normalize_features(track) * self._track_features_weight,
                 genre_embedding,
                 artist_embedding
             ]
@@ -161,6 +164,18 @@ class DataProcessor:
             df['id'] = list(representation_vectors.keys())
             df.set_index('id', inplace=True)
             df.to_csv('./dataset/track_vectors.csv')
+        
+        mask = np.hstack(
+                [
+                    np.array([self._track_features_weight]*len(Track.__scaled_features__)),
+                    np.array([self._genre_weight]*self.w2v_genre_features),
+                    np.array([self._artist_weight]*self.w2v_artist_features)
+                ]
+                
+            )
+        
+        for key in representation_vectors:
+            representation_vectors[key] = mask * representation_vectors[key]
         
         return representation_vectors
     
