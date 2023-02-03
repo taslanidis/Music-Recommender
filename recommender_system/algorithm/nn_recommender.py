@@ -21,7 +21,7 @@ class NearestNeighborsRecommender:
         self._data_provider = DataProvider()
         self._profile_creator = ProfileCreator()
         self._recommender_model = NearestNeighbors(
-            n_neighbors=20,
+            n_neighbors=60,
             metric='cosine'
         )
         self._curator = MusicCurator()
@@ -92,7 +92,7 @@ class NearestNeighborsRecommender:
     def recommend_k_tracks_based_on_track_pool(
         self,
         track_pool: List[Track]
-    ) -> List[Track]:
+    ) -> List[RecommendedTrack]:
         """Recommend K tracks based on a pool of tracks
 
         Args:
@@ -117,7 +117,10 @@ class NearestNeighborsRecommender:
             )
             tracks_to_recommend.extend(similar_tracks)
 
-        curated_recommendations = self._curator.curate_recommendation_list(tracks_to_recommend)
+        curated_recommendations = self._curator.curate_recommendation_list(
+            track_pool=tracks_to_recommend,
+            recommendation_number=30
+        )
 
         return curated_recommendations
 
@@ -125,7 +128,7 @@ class NearestNeighborsRecommender:
     def recommend_k_tracks_for_playlist(
         self,
         playlist_id: str
-    ) -> List[Track]:
+    ) -> List[RecommendedTrack]:
 
         tracks = self._data_provider.get_playlist_tracks(
             playlist_id=playlist_id

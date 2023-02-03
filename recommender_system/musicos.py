@@ -52,10 +52,10 @@ class MusicOs:
 
             self._spotify_web_api.replace_playlist_tracks(
                 playlist_id=output_playlist_id,
-                tracks_id=[track.id for track in recommendations]
+                tracks_id=[recommendation.track.id for recommendation in recommendations]
             )
 
-        return [(track.name_artists[0], track.name) for track in recommendations]
+        return [(recommendation.track.name_artists[0], recommendation.track.name) for recommendation in recommendations]
 
 
     def recommend_k_tracks_for_playlist(
@@ -73,10 +73,10 @@ class MusicOs:
 
             self._spotify_web_api.replace_playlist_tracks(
                 playlist_id=output_playlist_id,
-                tracks_id=[track.id for track in recommendations]
+                tracks_id=[recommendation.track.id for recommendation in recommendations]
             )
 
-        return [(track.name_artists[0], track.name) for track in recommendations]
+        return [(recommendation.track.name_artists[0], recommendation.track.name) for recommendation in recommendations]
 
     
     def get_session_stats(self):
