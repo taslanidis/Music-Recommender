@@ -33,10 +33,14 @@ class MusicListeningSession:
                 if genre not in top_genres:
                     top_genres[genre] = 0
                 top_genres[genre] += 1
-        return dict(Counter(top_genres).most_common(5))
+        return dict(Counter(top_genres).most_common(10))
     
     
     def get_session_statistics(self):
+        
+        if len(self._track_pool) <= 0:
+            return {}
+
         return {
             'danceability_mean': np.mean([track.danceability for track in self._track_pool]),
             'energy_mean': np.mean([track.energy for track in self._track_pool]),

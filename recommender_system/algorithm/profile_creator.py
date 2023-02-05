@@ -1,7 +1,7 @@
 import numpy as np
 
 from numpy.typing import NDArray
-from typing import List, get_type_hints, Tuple
+from typing import List, get_type_hints, Tuple, Dict
 from sklearn.cluster import DBSCAN
 from sklearn.manifold import TSNE
 
@@ -23,7 +23,7 @@ class ProfileCreator:
 
     def __init__(self):
         self._profiler = DBSCAN(
-            eps=0.1, 
+            eps=0.05, 
             metric='cosine', 
             min_samples=5
         )
@@ -73,6 +73,6 @@ class ProfileCreator:
         )
     
         tsne_model = TSNE(perplexity=10, n_components=2, init='pca', n_iter=2500, random_state=23)
-        tsne_reduced_output = tsne_model.fit_transform(tracks)
+        tsne_reduced_output: NDArray = tsne_model.fit_transform(np.array(tracks))
         
-        return list(zip(tsne_reduced_output, cluster_result))
+        return list(zip(tsne_reduced_output.tolist(), cluster_result.tolist()))

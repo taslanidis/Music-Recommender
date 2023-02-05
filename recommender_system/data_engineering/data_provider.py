@@ -95,3 +95,13 @@ class DataProvider:
         self._track_representation_vectors[track.id] = self._data_processor.create_track_representation_vector(track)
         
         return self._track_representation_vectors[track.id]
+    
+    
+    def get_artist_by_name(
+        self,
+        artist_name: str
+    ) -> Artist:
+        for artist_id in self._artists:
+            # TODO: create more smart mappers
+            if self._artists[artist_id].name == artist_name:
+                return self._artists[artist_id]

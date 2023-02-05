@@ -117,3 +117,23 @@ class Playlist(BaseModel):
     type: str
     uri: str
     tracks: PlaylistTracksInformation
+    
+    
+class SessionSettings(BaseModel):
+    danceability: Optional[float] = None
+    energy: Optional[float] = None
+    instrumentalness: Optional[float] = None
+    speechiness: Optional[float] = None
+    valence: Optional[float] = None
+    tempo: Optional[float] = None
+    genre_text: Optional[str] = None
+    
+    __filters__ = [
+        'danceability',
+        'energy',
+        'instrumentalness',
+        'speechiness',
+        'valence',
+        'tempo',
+        'genre_text'
+    ]

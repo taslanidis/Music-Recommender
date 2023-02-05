@@ -94,8 +94,8 @@ class DataProcessor:
         representation_vector = np.hstack(
             [
                 self.normalize_features(track) * self._track_features_weight,
-                genre_embedding,
-                artist_embedding
+                genre_embedding * self._genre_weight,
+                artist_embedding * self._artist_weight
             ]
         )
 

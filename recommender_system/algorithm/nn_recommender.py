@@ -7,6 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 from recommender_system.algorithm.profile_creator import ProfileCreator
 from recommender_system.algorithm.curator import MusicCurator
 from recommender_system.data_engineering.data_provider import DataProvider
+from common.data_transfer.models import SessionSettings
 from common.domain.models import (
     Track, 
     Artist, 
@@ -89,9 +90,18 @@ class NearestNeighborsRecommender:
         return track_pool_vectors
 
 
+    def create_settings_filter(
+        self,
+        session_settings: SessionSettings
+    ):
+        for sfilter in session_settings.__filters__:
+            pass
+
+
     def recommend_k_tracks_based_on_track_pool(
         self,
-        track_pool: List[Track]
+        track_pool: List[Track],
+        session_settings: SessionSettings
     ) -> List[RecommendedTrack]:
         """Recommend K tracks based on a pool of tracks
 
@@ -101,7 +111,14 @@ class NearestNeighborsRecommender:
         Returns:
             List[Track]: recommendations
         """
+        session_settings_filter = self.create_settings_filter(
+            session_settings=session_settings
+        )
+        
         track_pool_vectors = self.get_track_pool_vectors(track_pool)
+        
+        if len(track_pool_vectors) <= 0:
+            return []
         
         eigen_tracks = self._profile_creator.create_profile_for_track_pool(
             tracks=list(track_pool_vectors.values())
@@ -127,7 +144,8 @@ class NearestNeighborsRecommender:
 
     def recommend_k_tracks_for_playlist(
         self,
-        playlist_id: str
+        playlist_id: str,
+        settings: SessionSettings
     ) -> List[RecommendedTrack]:
 
         tracks = self._data_provider.get_playlist_tracks(
@@ -135,7 +153,8 @@ class NearestNeighborsRecommender:
         )
 
         recommended_tracks = self.recommend_k_tracks_based_on_track_pool(
-            track_pool=tracks
+            track_pool=tracks,
+            session_settings=settings
         )
 
         return recommended_tracks

@@ -3,6 +3,7 @@ from typing import Optional, List
 from spotify_connectors.spotify_web_api_user import SpotifyWebAPIUser
 from recommender_system.algorithm.nn_recommender import NearestNeighborsRecommender
 from recommender_system.session.listening_session import MusicListeningSession
+from common.data_transfer.models import SessionSettings
 
 
 class MusicOs:
@@ -24,14 +25,21 @@ class MusicOs:
     
     def get_track_pool_clusters(self):
         tracks = self._session.get_track_pool()
+        
         vectors = self.recommender.get_track_pool_vectors(tracks)
-        tsne_with_cluster = self.recommender._profile_creator.get_tsne_points_with_cluster(vectors)
+        
+        if len(vectors) <= 0:
+            return []
+        
+        tsne_with_cluster = self.recommender._profile_creator.get_tsne_points_with_cluster(list(vectors.values()))
         
         track_ids = list(vectors.keys())
         track_pool_clusters = []
         for tsne_point, track_id in zip(tsne_with_cluster, track_ids):
+            track = self.recommender._data_provider.get_track(track_id)
             track_pool_clusters.append({
                 'track_id': track_id,
+                'track_name': f"{track.name_artists[0]} - {track.name}",
                 'cluster': tsne_point[1],
                 'tsne_coordinate': tsne_point[0]
             })
@@ -42,10 +50,12 @@ class MusicOs:
     def generate_session_recommendations(
         self,
         output_playlist_id: str,
+        settings: Optional[SessionSettings] = None,
         add_to_spotify_playlist: Optional[bool] = False
     ):
         recommendations = self.recommender.recommend_k_tracks_based_on_track_pool(
-            track_pool=self._session.get_track_pool()
+            track_pool=self._session.get_track_pool(),
+            session_settings=settings
         )
 
         if add_to_spotify_playlist:
@@ -62,11 +72,13 @@ class MusicOs:
         self,
         playlist_id: str,
         output_playlist_id: str,
+        settings: Optional[SessionSettings] = None,
         add_to_spotify_playlist: Optional[bool] = False
     ) -> Optional[List[str]]:
 
         recommendations = self.recommender.recommend_k_tracks_for_playlist(
-            playlist_id=playlist_id
+            playlist_id=playlist_id,
+            settings=settings
         )
 
         if add_to_spotify_playlist:

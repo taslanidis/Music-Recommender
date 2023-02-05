@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from typing import Optional
+
 from recommender_system.musicos import MusicOs
+from common.data_transfer.models import SessionSettings
 
 
 app = FastAPI()
@@ -17,13 +20,17 @@ async def root():
     return RedirectResponse(url='/docs')
 
 
-@app.get("/recommendations_for_playlist/{playlist_id}")
-async def recommendations_for_playlist(playlist_id: str):
+@app.post("/recommendations_for_playlist/{playlist_id}")
+async def recommendations_for_playlist(
+    playlist_id: str, 
+    settings: Optional[SessionSettings]
+):
     """Get recommendation for specific playlist
     """
     return musicos.recommend_k_tracks_for_playlist(
         playlist_id=playlist_id,
         output_playlist_id="3RNUyOGbClap09tyDtLb8R",
+        settings=settings,
         add_to_spotify_playlist=True
     )
 
@@ -37,12 +44,13 @@ async def session_add(playlist_id: str):
     )
 
 
-@app.get("/session/recommendations")
-async def recommendations_for_session():
+@app.post("/session/recommendations")
+async def recommendations_for_session(settings: Optional[SessionSettings]):
     """Get recommendations for the current session
     """
     return musicos.generate_session_recommendations(
         output_playlist_id="3RNUyOGbClap09tyDtLb8R",
+        settings=settings,
         add_to_spotify_playlist=True
     )
 
