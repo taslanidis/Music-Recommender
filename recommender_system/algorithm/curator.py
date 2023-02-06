@@ -8,6 +8,7 @@ class MusicCurator:
     def curate_recommendation_list(
         self,
         track_pool: List[RecommendedTrack],
+        weight_per_category: Dict[int, float] = None
         recommendation_number: Optional[int] = 30
     ) -> List[RecommendedTrack]:
         """Curate recommendations based on track information and score
@@ -23,16 +24,18 @@ class MusicCurator:
         Returns:
             List[RecommendedTrack]: curated recommendations
         """
-        sorted_track_pool = sorted(track_pool, key=lambda x: x.score, reverse=False)
+        processed_track_pool = self.enhance_scores_on_duplicate_recommended_tracks(processed_track_pool)
+        processed_track_pool = sorted(processed_track_pool, key=lambda x: x.score, reverse=False)
         curated_recommendations = []
         categories_stats = {}
         
         max_tracks_per_category = self._get_max_tracks_per_category(
-            track_pool=sorted_track_pool,
-            recommendation_number=recommendation_number
+            track_pool=processed_track_pool,
+            recommendation_number=recommendation_number,
+            weight_per_category=weight_per_category
         )
         
-        for track in sorted_track_pool:
+        for track in processed_track_pool:
             
             if track.category not in categories_stats:
                 categories_stats[track.category] = 0
@@ -42,13 +45,39 @@ class MusicCurator:
             if is_already_added:
                 continue
             
-            if categories_stats[track.category] < max_tracks_per_category:
+            if categories_stats[track.category] < max_tracks_per_category[track.category]:
                 curated_recommendations.append(track)
                 categories_stats[track.category] += 1
                 
         return curated_recommendations
             
-            
+    
+    def enhance_scores_on_duplicate_recommended_tracks(
+        self,
+        track_pool: List[RecommendedTrack]
+    ) -> List[RecommendedTrack]:
+
+        if len(track_pool) == 0:
+            return []
+
+        enhanced_track_pool = []
+        track_pool = sorted(track_pool, key=lambda x: x.track.id, reverse=False)
+        previous = track_pool[0].id
+        accumulated = 0
+        for index, track in enumerate(track_pool[1:]):
+            if previous == index:
+                accumulated += 1
+                continue
+            previous = index
+            # decrease score (lower score is better)
+            # when a track is multiple times recommended
+            track.score = track.score / accumulated
+            enhanced_track_pool.append(track)
+            accumulated = 0
+
+        return enhanced_track_pool
+
+
     def check_for_another_track_version_in_list(
         self,
         track: Track,
@@ -102,8 +131,12 @@ class MusicCurator:
     def _get_max_tracks_per_category(
         self,
         track_pool: List[RecommendedTrack],
-        recommendation_number: int
-    ) -> int:
-        num_categories = len(list(set([s.category for s in track_pool])))
-        return recommendation_number // num_categories + int(recommendation_number % num_categories != 0)
+        recommendation_number: int,
+        weight_per_category: Dict[int, float]
+    ) -> Dict[int, int]:
+        categories = list(set([s.category for s in track_pool]))
+        return {
+            category: int(round(weight_per_category[category] * len(track_pool)))
+            for category in categories
+        }
         

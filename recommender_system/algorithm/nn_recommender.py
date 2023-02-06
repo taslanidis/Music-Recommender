@@ -120,11 +120,12 @@ class NearestNeighborsRecommender:
         if len(track_pool_vectors) <= 0:
             return []
         
-        eigen_tracks = self._profile_creator.create_profile_for_track_pool(
+        eigen_tracks, weights = self._profile_creator.create_profile_for_track_pool(
             tracks=list(track_pool_vectors.values())
         )
         
         tracks_to_recommend = []
+        weight_per_category = {}
         for category, eigen_track in enumerate(eigen_tracks):
             # get recommendations
             similar_tracks: List[RecommendedTrack] = self.find_k_most_similar_tracks(
@@ -133,10 +134,12 @@ class NearestNeighborsRecommender:
                 exclude_tracks=track_pool
             )
             tracks_to_recommend.extend(similar_tracks)
+            weight_per_category[category] = weights[category]
 
         curated_recommendations = self._curator.curate_recommendation_list(
             track_pool=tracks_to_recommend,
-            recommendation_number=30
+            recommendation_number=30,
+            weight_per_category=weight_per_category
         )
 
         return curated_recommendations

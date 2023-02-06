@@ -32,14 +32,14 @@ class ProfileCreator:
     def create_profile_for_track_pool(
         self,
         tracks: List[RepresentationVector]
-    ) -> List[RepresentationVector]:
+    ) -> Tuple[List[RepresentationVector], List[float]]:
         """Representation vector creation
 
         Args:
             tracks (List[Track]): a set of tracks which will be later described by the representation vectors
 
         Returns:
-            List[Track]: a set of representation vectors for all distinct groups in track pool
+            Tuple[List[Track], List[float]]: a set of representation vectors for all distinct groups in track pool, along with their weights [0-1]
         """
         cluster_result = self._profiler.fit_predict(
             tracks
@@ -52,7 +52,11 @@ class ProfileCreator:
             points_per_cluster[cluster].append(tracks[i])
         
         representation_vectors = []
+        profile_weights = []
         for cluster in points_per_cluster.keys():
+            profile_weights.append(
+                len(points_per_cluster[cluster]) / len(tracks)
+            )
             representation_vectors.append(
                 np.mean(
                     np.array(points_per_cluster[cluster]), 
@@ -60,7 +64,7 @@ class ProfileCreator:
                 )
             )
         
-        return representation_vectors
+        return representation_vectors, profile_weights
     
     
     def get_tsne_points_with_cluster(
