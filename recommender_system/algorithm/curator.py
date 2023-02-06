@@ -61,6 +61,7 @@ class MusicCurator:
             return []
 
         enhanced_track_pool = []
+        # TODO: sort by ID and then Score
         track_pool = sorted(track_pool, key=lambda x: x.track.id, reverse=False)
         previous = track_pool[0].id
         accumulated = 0
