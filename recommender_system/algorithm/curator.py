@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
 from common.domain.models import Track, RecommendedTrack
 
@@ -8,7 +8,7 @@ class MusicCurator:
     def curate_recommendation_list(
         self,
         track_pool: List[RecommendedTrack],
-        weight_per_category: Dict[int, float] = None
+        weight_per_category: Dict[int, float] = None,
         recommendation_number: Optional[int] = 30
     ) -> List[RecommendedTrack]:
         """Curate recommendations based on track information and score
@@ -24,7 +24,7 @@ class MusicCurator:
         Returns:
             List[RecommendedTrack]: curated recommendations
         """
-        processed_track_pool = self.enhance_scores_on_duplicate_recommended_tracks(processed_track_pool)
+        processed_track_pool = self.enhance_scores_on_duplicate_recommended_tracks(track_pool)
         processed_track_pool = sorted(processed_track_pool, key=lambda x: x.score, reverse=False)
         curated_recommendations = []
         categories_stats = {}
@@ -62,14 +62,14 @@ class MusicCurator:
 
         enhanced_track_pool = []
         # TODO: sort by ID and then Score
-        track_pool = sorted(track_pool, key=lambda x: x.track.id, reverse=False)
-        previous = track_pool[0].id
+        track_pool = sorted(track_pool, key=lambda x: (x.track.id, x.score), reverse=False)
+        previous = track_pool[0].track.id
         accumulated = 0
         for index, track in enumerate(track_pool[1:]):
-            if previous == index:
+            if previous == track.track.id:
                 accumulated += 1
                 continue
-            previous = index
+            previous = track.track.id
             # decrease score (lower score is better)
             # when a track is multiple times recommended
             track.score = track.score / accumulated
@@ -137,7 +137,7 @@ class MusicCurator:
     ) -> Dict[int, int]:
         categories = list(set([s.category for s in track_pool]))
         return {
-            category: int(round(weight_per_category[category] * len(track_pool)))
+            category: int(round(weight_per_category[category] * recommendation_number))
             for category in categories
         }
         
