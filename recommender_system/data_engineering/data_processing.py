@@ -224,6 +224,10 @@ class DataProcessor:
         """
         sentence_vector = np.zeros(features_number,)
         for word in sentence_tokenized:
+            
+            if word not in tfidf_vocab:
+                continue
+            
             weight = weights_per_word[tfidf_vocab.index(word)]
             word_vector = self._genre_embeddings.wv.get_vector(word, norm=True)
             word_vector = word_vector * weight

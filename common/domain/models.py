@@ -11,6 +11,7 @@ class Track(BaseModel):
     name: str = None
     release_date: datetime = None
     track_age: float = None
+    key: int = None
     popularity: float = None
     danceability: float = None
     tempo: float = None

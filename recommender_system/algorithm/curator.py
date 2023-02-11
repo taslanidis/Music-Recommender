@@ -1,4 +1,5 @@
 from typing import List, Tuple, Optional, Dict
+from copy import deepcopy
 
 from common.domain.models import Track, RecommendedTrack
 
@@ -12,6 +13,8 @@ class MusicCurator:
         recommendation_number: Optional[int] = 30
     ) -> List[RecommendedTrack]:
         """Curate recommendations based on track information and score
+
+        TODO: per user weights
 
         1. Keeps the same amount of tracks for each category
         2. Deletes all duplicates tracks
@@ -49,8 +52,38 @@ class MusicCurator:
                 curated_recommendations.append(track)
                 categories_stats[track.category] += 1
                 
+        curated_recommendations = self.smart_dj(curated_recommendations)
+                
         return curated_recommendations
             
+            
+    def smart_dj(self, track_list: List[RecommendedTrack]) -> List[RecommendedTrack]:
+        """Gets a track list and sorts it like a DJ set
+
+        BPM, Key, Energy
+
+        Args:
+            track_list (List[RecommendedTrack]): track list
+
+        Returns:
+            List[RecommendedTrack]: curated dj set
+        """
+        dj_output: List[RecommendedTrack] = []
+        
+        for track in track_list:
+            track_copy = deepcopy(track)
+            
+            if track_copy.track.danceability < 0.5 and track_copy.track.tempo >= 140:
+                track_copy.track.tempo /= 2
+                
+            track_copy.track.tempo = round(track_copy.track.tempo)
+            
+            dj_output.append(track_copy)
+        
+        dj_output = sorted(dj_output, key=lambda x: (x.track.tempo, x.track.energy), reverse=False)
+        
+        return dj_output
+    
     
     def enhance_scores_on_duplicate_recommended_tracks(
         self,
