@@ -61,3 +61,19 @@ class RecommendedTrack(BaseModel):
     track: Track
     score: float
     category: int
+    
+
+class ArtistSearchableObject(BaseModel):
+    name: str
+    id: str
+    
+    def __eq__(self, other):
+        return self.name == other.name
+    
+    
+    def __gt__(self, other):
+        return self.name > other.name
+    
+    
+    def __lt__(self, other):
+        return self.name < other.name

@@ -1,7 +1,13 @@
+import os
+
 from typer import Typer, echo
 from recommender_system.musicos import MusicOs
+from scrapy.utils.project import get_project_settings
+from scrapy.crawler import CrawlerProcess
 
 from spotify_connectors.spotify_data_loader import SpotifyAPIDataLoader
+from scrapers.music_data_scrapers.spiders.wikipedia import Wikipedia
+
 
 app = Typer()
 
@@ -27,5 +33,15 @@ def recommend_for_playlist(playlist_id: str):
     echo(recommendations)
 
 
+@app.command('scrape-wikipedia-artists')
+def scrape_wiki():
+    settings_file_path = 'scrapers'
+    os.environ.setdefault('SCRAPY_SETTINGS_MODULE', settings_file_path)
+    process = CrawlerProcess(settings=get_project_settings())
+
+    process.crawl(Wikipedia)
+    process.start() # the script will block here until the crawling is finished
+    
+    
 if __name__ == "__main__":
     app()

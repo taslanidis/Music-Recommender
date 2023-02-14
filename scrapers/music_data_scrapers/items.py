@@ -7,6 +7,8 @@ import scrapy
 
 
 class MusicDataScrapersItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    url = scrapy.Field()
+    artists = scrapy.Field()
+    
+    def __repr__(self):
+        return ""

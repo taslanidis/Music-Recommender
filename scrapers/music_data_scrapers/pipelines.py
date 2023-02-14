@@ -7,7 +7,19 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
+import json
+
 
 class MusicDataScrapersPipeline:
+    
+    def open_spider(self, spider):
+        self.records = []
+
+
+    def close_spider(self, spider):
+        with open('./dataset/artists_wiki_graph.json', 'w') as outfile:
+            json.dump(self.records, outfile, indent=4)
+        
+    
     def process_item(self, item, spider):
-        return item
+        self.records.append({"url": item['url'], "artists": item['artists']})

@@ -3,10 +3,11 @@ import numpy as np
 from typing import Dict, List, Optional
 
 from common.database.local_storage import LocalStorage
-from common.domain.models import Track, Artist, RepresentationVector
+from common.domain.models import Track, Artist, RepresentationVector, ArtistSearchableObject
 from common.converters.interfaces import TrackConversionInterface, ArtistConversionInterface
 from recommender_system.data_engineering.data_processing import DataProcessor
 from spotify_connectors.spotify_web_api import SpotifyWebAPI
+from common import utils
 
 
 class DataProvider:
@@ -15,18 +16,44 @@ class DataProvider:
     _tracks: Dict[str, Track] = None
     _artists: Dict[str, Artist] = None
     
-    def __init__(self):
+    def __init__(
+        self, 
+        create_hash_map_for_artists: Optional[bool] = False,
+        use_as_mapper_only: Optional[bool] = False
+    ):
         self._db = LocalStorage()
         self._spotify_web_api = SpotifyWebAPI()
         self._data_processor = DataProcessor(track_features_weight=2)
         self._tracks = self._db.get_tracks()
         self._artists = self._db.get_artists()
-            
-        self._data_processor.fit_normalizer(self._tracks.values())
         
-        self._track_representation_vectors = self._data_processor._initialize_track_representation_vectors(
-            self._tracks.values()
-        )
+        if not use_as_mapper_only:
+            
+            self._data_processor.fit_normalizer(self._tracks.values())
+            
+            self._track_representation_vectors = self._data_processor._initialize_track_representation_vectors(
+                self._tracks.values()
+            )
+        
+        if create_hash_map_for_artists:
+            self._artist_hash_map: Dict[str, List[ArtistSearchableObject]] = {}
+            
+            for artist in self._artists.values():
+                artist_name_clean = utils.clear_name_text(artist.name)
+                
+                if artist_name_clean[0] not in self._artist_hash_map:
+                    self._artist_hash_map[artist_name_clean[0]] = []
+                
+                self._artist_hash_map[artist_name_clean[0]].append(
+                    ArtistSearchableObject(
+                        name = utils.clear_name_text(artist_name_clean),
+                        id = artist.id
+                    )
+                )
+                
+            # sort hash bins
+            for key in self._artist_hash_map.keys():
+                self._artist_hash_map[key] = sorted(self._artist_hash_map[key], key = lambda x: x.name, reverse=False)
     
 
     def get_all_available_tracks(self):
@@ -97,11 +124,15 @@ class DataProvider:
         return self._track_representation_vectors[track.id]
     
     
-    def get_artist_by_name(
+    def artist_mapper(
         self,
         artist_name: str
     ) -> Artist:
-        for artist_id in self._artists:
-            # TODO: create more smart mappers
-            if self._artists[artist_id].name == artist_name:
-                return self._artists[artist_id]
+        
+        artist_name_clean = utils.clear_name_text(artist_name)
+        
+        artists_bin = self._artist_hash_map.get(artist_name_clean[0], [])
+        
+        for artists in artists_bin:
+            if artist_name_clean == artists.name:
+                return self._artists[artists.id]
