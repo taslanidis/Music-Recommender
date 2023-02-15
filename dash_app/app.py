@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, Input, Output
+from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 import requests
 import plotly.express as px
@@ -66,7 +66,7 @@ app.layout = dbc.Container(
                         dbc.InputGroup(
                             [
                                 dbc.InputGroupText("@"),
-                                dbc.Input(placeholder="Playlist ID", type="string"),
+                                dbc.Input(placeholder="Playlist ID", type="string", id="playlist_input"),
                                 dbc.Button("Submit", id="input-group-button", n_clicks=0)
                             ],
                             className="mb-3",
@@ -93,7 +93,9 @@ app.layout = dbc.Container(
                     ]
                 ),
                 dbc.Col(
-                    children=[]
+                    children=[
+                        html.Div(id="recommendation_container")
+                    ]
                 )
             ]
         ) # output menu
@@ -154,6 +156,56 @@ def update_session_plot_figure(session_id: str = None):
     fig.update_layout(transition_duration=200)
 
     return dcc.Graph(id='graph_session_track_plot', figure=fig)
+
+
+@app.callback(
+    Input('input-group-button', 'n_clicks'),
+    State('playlist_input', 'value')
+)
+def add_playlist_to_session(n_clicks, playlist_input):
+    
+    if n_clicks == 0:
+        return
+    
+    # TODO: add output to say that a playlist was added successfully
+    response = requests.get(f"http://localhost:8000/session/add/{playlist_input}")
+    success = response.status == 200
+
+
+@app.callback(
+    Input('reset_listening_session', 'n_clicks')
+)
+def reset_listening_session(n_clicks):
+    
+    if n_clicks == 0:
+        return
+
+    response = requests.get(f"http://localhost:8000/session/reset")
+    success = response.status == 200
+
+
+@app.callback(
+    Input('generate_recommendations', 'n_clicks'),
+    Output('recommendation_container', 'children')
+)
+def generate_recommendations(n_clicks):
+    
+    if n_clicks == 0:
+        return
+
+    response = requests.get(f"http://localhost:8000/session/recommendations")
+    success = response.status == 200
+
+    response = response.json()
+
+    # TODO: prettify this
+    # show table with all recommendations
+    return response
+
+
+def recommendation_statistics():
+    # TODO: show some statistics
+    pass
 
 
 if __name__ == "__main__":

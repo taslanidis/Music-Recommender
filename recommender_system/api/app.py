@@ -4,6 +4,7 @@ from typing import Optional
 
 from recommender_system.musicos import MusicOs
 from common.data_transfer.models import SessionSettings
+from common import utils
 
 
 app = FastAPI()
@@ -26,7 +27,11 @@ async def recommendations_for_playlist(
     settings: Optional[SessionSettings]
 ):
     """Get recommendation for specific playlist
+
+    Playlist ID can be both ID or playlist link
     """
+    playlist_id = utils.get_spotify_playlist_id(playlist_id)
+    
     return musicos.recommend_k_tracks_for_playlist(
         playlist_id=playlist_id,
         output_playlist_id="3RNUyOGbClap09tyDtLb8R",
@@ -38,7 +43,11 @@ async def recommendations_for_playlist(
 @app.get("/session/add/{playlist_id}")
 async def session_add(playlist_id: str):
     """Add playlist to session
+
+    Playlist ID can be both ID or playlist link
     """
+    playlist_id = utils.get_spotify_playlist_id(playlist_id)
+
     musicos.add_playlist_to_session(
         playlist_id=playlist_id
     )

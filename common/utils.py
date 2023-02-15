@@ -30,3 +30,10 @@ def binary_search(alist: List[Any], item: Any) -> Tuple[int, bool]:
                 index_first = midpoint + 1
     
     return (pos, found)
+
+
+def get_spotify_playlist_id(link: str) -> str:
+    if link.lower().find("playlist/"):
+        return re.match(r'(^|(?<=playlist\/))[A-Za-z0-9]+($|\?si)', link).group(1)
+
+    return link
