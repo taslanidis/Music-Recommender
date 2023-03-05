@@ -18,15 +18,22 @@ class MusicOs:
         self._session.clear_session()
     
 
-    def add_playlist_to_session(self, playlist_id: str):
+    def add_playlist_to_session(self, playlist_id: str, user_id: str):
         tracks = self.recommender._data_provider.get_playlist_tracks(playlist_id)
-        self._session.add_to_pool(tracks)
-        
+        self._session.add_to_pool(tracks, user_id)
+    
+    
+    def add_track_to_session(self, track_id: str, user_id: str):
+        track = self.recommender._data_provider.get_track(track_id)
+        self._session.add_to_pool([track], user_id)
+    
     
     def get_track_pool_clusters(self):
-        tracks = self._session.get_track_pool()
+        track_pool = self._session.get_track_pool()
         
-        vectors = self.recommender.get_track_pool_vectors(tracks)
+        vectors = self.recommender.get_track_pool_vectors(
+            [item.track for item in track_pool.values()]
+        )
         
         if len(vectors) <= 0:
             return []
@@ -53,7 +60,7 @@ class MusicOs:
         settings: Optional[SessionSettings] = None,
         add_to_spotify_playlist: Optional[bool] = False
     ):
-        recommendations = self.recommender.recommend_k_tracks_based_on_track_pool(
+        recommendations = self.recommender.recommend_k_tracks_for_track_pool(
             track_pool=self._session.get_track_pool(),
             session_settings=settings
         )

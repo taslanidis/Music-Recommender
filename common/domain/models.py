@@ -77,3 +77,8 @@ class ArtistSearchableObject(BaseModel):
     
     def __lt__(self, other):
         return self.name < other.name
+    
+    
+class TrackPoolItem(BaseModel):
+    track: Track
+    frequency: float

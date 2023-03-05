@@ -3,16 +3,19 @@ import numpy as np
 from typing import List, Optional, Dict, Tuple
 from numpy.typing import NDArray
 from sklearn.neighbors import NearestNeighbors
+from collections import Counter
 
 from recommender_system.algorithm.profile_creator import ProfileCreator
 from recommender_system.algorithm.curator import MusicCurator
+from recommender_system.algorithm.track_pool_processor import TrackPoolProcessor
 from recommender_system.data_engineering.data_provider import DataProvider
 from common.data_transfer.models import SessionSettings
 from common.domain.models import (
     Track, 
     Artist, 
     RepresentationVector, 
-    RecommendedTrack
+    RecommendedTrack,
+    TrackPoolItem
 )
 
 
@@ -98,9 +101,9 @@ class NearestNeighborsRecommender:
             pass
 
 
-    def recommend_k_tracks_based_on_track_pool(
+    def __recommend_k_tracks(
         self,
-        track_pool: List[Track],
+        track_pool: Dict[str, TrackPoolItem],
         session_settings: SessionSettings
     ) -> List[RecommendedTrack]:
         """Recommend K tracks based on a pool of tracks
@@ -115,13 +118,16 @@ class NearestNeighborsRecommender:
             session_settings=session_settings
         )
         
-        track_pool_vectors = self.get_track_pool_vectors(track_pool)
+        track_pool_vectors = self.get_track_pool_vectors(
+            [item.track for item in track_pool.values()]
+        )
         
         if len(track_pool_vectors) <= 0:
             return []
         
         eigen_tracks, weights = self._profile_creator.create_profile_for_track_pool(
-            tracks=list(track_pool_vectors.values())
+            track_vectors=track_pool_vectors,
+            track_pool=track_pool
         )
         
         tracks_to_recommend = []
@@ -130,8 +136,7 @@ class NearestNeighborsRecommender:
             # get recommendations
             similar_tracks: List[RecommendedTrack] = self.find_k_most_similar_tracks(
                 category=category,
-                track_vector=eigen_track,
-                exclude_tracks=track_pool
+                track_vector=eigen_track
             )
             tracks_to_recommend.extend(similar_tracks)
             weight_per_category[category] = weights[category]
@@ -145,6 +150,20 @@ class NearestNeighborsRecommender:
         return curated_recommendations
 
 
+    def recommend_k_tracks_for_track_pool(
+        self,
+        track_pool: Dict[str, TrackPoolItem],
+        session_settings: SessionSettings
+    ) -> List[RecommendedTrack]:
+
+        recommended_tracks = self.__recommend_k_tracks(
+            track_pool=track_pool,
+            session_settings=session_settings
+        )
+
+        return recommended_tracks
+
+
     def recommend_k_tracks_for_playlist(
         self,
         playlist_id: str,
@@ -155,8 +174,12 @@ class NearestNeighborsRecommender:
             playlist_id=playlist_id
         )
 
-        recommended_tracks = self.recommend_k_tracks_based_on_track_pool(
-            track_pool=tracks,
+        track_pool = TrackPoolProcessor.create_track_pool_from_list(
+            track_list=tracks
+        )
+
+        recommended_tracks = self.__recommend_k_tracks(
+            track_pool=track_pool,
             session_settings=settings
         )
 

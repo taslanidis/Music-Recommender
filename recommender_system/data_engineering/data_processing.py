@@ -76,11 +76,15 @@ class DataProcessor:
         Returns:
             RepresentationVector: output representation vector
         """
-        concatenated_genres = " ".join([self.process_genre(genre) for genre in track.genres])
-            
+        genre_tokens = [self.process_genre(genre) for genre in track.genres]
+        
+        # if track is of unknown genre - it can not be processed
+        if len(genre_tokens) == 0:
+            return None
+        
         genre_embedding = self.create_sentence_embedding(
-            sentence_tokenized=word_tokenize(concatenated_genres),
-            weights_per_word=self._tfidf.transform([concatenated_genres]).toarray().reshape(-1,), 
+            sentence_tokenized=genre_tokens,
+            weights_per_word=self._tfidf.transform(genre_tokens).toarray().reshape(-1,), 
             tfidf_vocab=tf_idf_features,
             features_number=self.w2v_genre_features
         )
@@ -128,9 +132,9 @@ class DataProcessor:
         
             vocab = list(set(
                 [
-                    token for track in tqdm(tracks, desc="Creating vocab for genres") \
-                        for genre in track.genres \
-                        for token in word_tokenize(self.process_genre(genre))
+                    self.process_genre(genre) \
+                        for track in tqdm(tracks, desc="Creating vocab for genres") \
+                        for genre in track.genres
                 ]
             ))
             
@@ -199,9 +203,7 @@ class DataProcessor:
     
     
     def process_genre(self, genre: str) -> str:
-        new_genre = genre.replace('hip hop', 'hiphop')
-        new_genre = genre.replace('r&b', 'rb')
-        return new_genre.strip()
+        return genre.strip()
 
 
     def create_sentence_embedding(
@@ -223,6 +225,7 @@ class DataProcessor:
             NDArray: Sentence embedding
         """
         sentence_vector = np.zeros(features_number,)
+        tokens_accumulated = 0
         for word in sentence_tokenized:
             
             if word not in tfidf_vocab:
@@ -232,5 +235,6 @@ class DataProcessor:
             word_vector = self._genre_embeddings.wv.get_vector(word, norm=True)
             word_vector = word_vector * weight
             sentence_vector += word_vector
+            tokens_accumulated += 1
 
-        return sentence_vector / len(sentence_tokenized) if len(sentence_tokenized) > 0 else np.array([np.nan]*features_number)
+        return sentence_vector / tokens_accumulated if tokens_accumulated > 0 else np.array([np.nan]*features_number)

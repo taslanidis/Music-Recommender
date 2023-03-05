@@ -16,6 +16,8 @@ server = app.server
 
 app.layout = dbc.Container(
     children=[
+        html.Div(id='hidden-placeholder'),
+        html.Div(id='hidden-placeholder-2'),
         html.Div(id="client-session-id"),
         dbc.Row(
             children=[
@@ -57,7 +59,8 @@ app.layout = dbc.Container(
                         dbc.Card(
                             [
                                 html.H5("Session settings")
-                            ]
+                            ],
+                            class_name="h-auto border"
                         )
                     ]
                 ),
@@ -70,19 +73,59 @@ app.layout = dbc.Container(
                                 dbc.Button("Submit", id="input-group-button", n_clicks=0)
                             ],
                             className="mb-3",
+                        ),
+                        dbc.Row(
+                            children=[
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Generate Recommendations", 
+                                        id="generate_recommendations", 
+                                        n_clicks=0, 
+                                        class_name="btn-dark"
+                                    )
+                                ),
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Reset listening session",
+                                        id="reset_listening_session",
+                                        n_clicks=0,
+                                        class_name="align-self-end"
+                                    )
+                                )
+                            ],
+                            class_name="justify-content-between"
                         )
                     ]
                 ),
                 dbc.Col(
-                    children=[
-                        dbc.Button(
-                            "Reset listening session",
-                            id="reset_listening_session"
+                    [
+                        dbc.Alert(
+                            children=[
+                                html.P("Successfully added playlist or track")
+                            ],
+                            id="successful-addition",
+                            class_name="alert",
+                            dismissable=True,
+                            fade=False,
+                            is_open=False
+                        ),
+                        dbc.Alert(
+                            children=[
+                                html.P("Successfully generated recommendations")
+                            ],
+                            id="successful-generation",
+                            class_name="alert",
+                            dismissable=True,
+                            fade=False,
+                            is_open=False
                         )
                     ]
+                ),
+                dbc.Col(
+                    id="QR-code"
                 )
             ],
-            style={"margin-top": "20px"}
+            style={"margin-top": "20px", "height": "200px"}
         ), # control menu
         dbc.Row(
             children=[
@@ -159,6 +202,7 @@ def update_session_plot_figure(session_id: str = None):
 
 
 @app.callback(
+    Output('successful-addition', 'is_open'),
     Input('input-group-button', 'n_clicks'),
     State('playlist_input', 'value')
 )
@@ -169,10 +213,13 @@ def add_playlist_to_session(n_clicks, playlist_input):
     
     # TODO: add output to say that a playlist was added successfully
     response = requests.get(f"http://localhost:8000/session/add/{playlist_input}")
-    success = response.status == 200
+    success = response.status_code == 200
+
+    return success
 
 
 @app.callback(
+    Output('successful-generation', 'is_open'),
     Input('reset_listening_session', 'n_clicks')
 )
 def reset_listening_session(n_clicks):
@@ -181,26 +228,31 @@ def reset_listening_session(n_clicks):
         return
 
     response = requests.get(f"http://localhost:8000/session/reset")
-    success = response.status == 200
+    success = response.status_code == 200
+    
+    return success
 
 
 @app.callback(
-    Input('generate_recommendations', 'n_clicks'),
-    Output('recommendation_container', 'children')
+    Output('recommendation_container', 'children'),
+    Input('generate_recommendations', 'n_clicks')
 )
 def generate_recommendations(n_clicks):
     
     if n_clicks == 0:
         return
 
-    response = requests.get(f"http://localhost:8000/session/recommendations")
-    success = response.status == 200
+    response = requests.post(f"http://localhost:8000/session/recommendations")
+    success = response.status_code == 200
+    
+    if success:
+        response = response.json()
 
-    response = response.json()
-
-    # TODO: prettify this
-    # show table with all recommendations
-    return response
+        # TODO: prettify this
+        # show table with all recommendations
+        return response
+    else:
+        print(response.json())
 
 
 def recommendation_statistics():

@@ -5,7 +5,7 @@ from typing import List, get_type_hints, Tuple, Dict
 from sklearn.cluster import DBSCAN
 from sklearn.manifold import TSNE
 
-from common.domain.models import Track, RepresentationVector
+from common.domain.models import Track, RepresentationVector, TrackPoolItem
 
 
 class ProfileCreator:
@@ -31,7 +31,8 @@ class ProfileCreator:
 
     def create_profile_for_track_pool(
         self,
-        tracks: List[RepresentationVector]
+        track_vectors: Dict[str, RepresentationVector],
+        track_pool: Dict[str, TrackPoolItem]
     ) -> Tuple[List[RepresentationVector], List[float]]:
         """Representation vector creation
 
@@ -41,22 +42,32 @@ class ProfileCreator:
         Returns:
             Tuple[List[Track], List[float]]: a set of representation vectors for all distinct groups in track pool, along with their weights [0-1]
         """
+        track_vectors_ids = list(track_vectors.keys())
         cluster_result = self._profiler.fit_predict(
-            tracks
+            list(track_vectors.values())
         )
         
-        points_per_cluster = {}
+        points_per_cluster: Dict[int, List] = {}
+        weights_per_cluster: Dict[int, List] = {}
+        
         for i, cluster in enumerate(cluster_result):
+            track_id = track_vectors_ids[i]
+            
             if cluster not in points_per_cluster:
                 points_per_cluster[cluster] = []
-            points_per_cluster[cluster].append(tracks[i])
+                weights_per_cluster[cluster] = []
+                
+            points_per_cluster[cluster].append(track_vectors[track_id])
+            weights_per_cluster[cluster].append(track_pool[track_id].frequency)
         
         representation_vectors = []
         profile_weights = []
         for cluster in points_per_cluster.keys():
+            # TODO: sum track weights of cluster / sum of all weights
             profile_weights.append(
-                len(points_per_cluster[cluster]) / len(tracks)
+                len(points_per_cluster[cluster]) / len(track_vectors)
             )
+            # TODO: on each cluster there are X tracks with different weights -> the means will change relevantly
             representation_vectors.append(
                 np.mean(
                     np.array(points_per_cluster[cluster]), 

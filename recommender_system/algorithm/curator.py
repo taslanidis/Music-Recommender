@@ -105,7 +105,7 @@ class MusicCurator:
             previous = track.track.id
             # decrease score (lower score is better)
             # when a track is multiple times recommended
-            track.score = track.score / accumulated
+            track.score = track.score / accumulated if accumulated > 0 else track.score
             enhanced_track_pool.append(track)
             accumulated = 0
 

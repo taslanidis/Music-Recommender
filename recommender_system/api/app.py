@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from typing import Optional
 
 from recommender_system.musicos import MusicOs
-from common.data_transfer.models import SessionSettings
+from common.data_transfer.models import SessionSettings, SessionAddition
 from common import utils
 
 
@@ -40,21 +40,33 @@ async def recommendations_for_playlist(
     )
 
 
-@app.get("/session/add/{playlist_id}")
-async def session_add(playlist_id: str):
+@app.post("/session/add")
+async def session_add(session_addition: SessionAddition):
     """Add playlist to session
 
     Playlist ID can be both ID or playlist link
     """
-    playlist_id = utils.get_spotify_playlist_id(playlist_id)
+    is_playlist, is_track, object_id = utils.get_spotify_object_id(session_addition.playlist_or_track_id)
 
-    musicos.add_playlist_to_session(
-        playlist_id=playlist_id
-    )
+    if is_playlist:
+        musicos.add_playlist_to_session(
+            playlist_id=object_id,
+            user_id=session_addition.provided_by_user_id
+        )
+        
+    elif is_track:
+        musicos.add_track_to_session(
+            track_id=object_id,
+            user_id=session_addition.provided_by_user_id
+        )
+    
+    else:
+        return JSONResponse(status_code=400, content="Invalid <playlist_or_track_id>") 
+    
 
 
 @app.post("/session/recommendations")
-async def recommendations_for_session(settings: Optional[SessionSettings]):
+async def recommendations_for_session(settings: Optional[SessionSettings] = None):
     """Get recommendations for the current session
     """
     return musicos.generate_session_recommendations(

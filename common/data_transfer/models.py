@@ -137,3 +137,8 @@ class SessionSettings(BaseModel):
         'tempo',
         'genre_text'
     ]
+    
+
+class SessionAddition(BaseModel):
+    playlist_or_track_id: str
+    provided_by_user_id: str
