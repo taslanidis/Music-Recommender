@@ -62,15 +62,17 @@ class ProfileCreator:
         
         representation_vectors = []
         profile_weights = []
+        sum_of_freq = np.sum([w for cluster_weights in weights_per_cluster.values() for w in cluster_weights])
         for cluster in points_per_cluster.keys():
-            # TODO: sum track weights of cluster / sum of all weights
+            # sum track weights of cluster / sum of all weights
             profile_weights.append(
-                len(points_per_cluster[cluster]) / len(track_vectors)
+                np.sum(weights_per_cluster[cluster]) / sum_of_freq
             )
-            # TODO: on each cluster there are X tracks with different weights -> the means will change relevantly
+            # Weighted average of track features based on frequencies
             representation_vectors.append(
-                np.mean(
+                np.average(
                     np.array(points_per_cluster[cluster]), 
+                    weights=np.array(weights_per_cluster[cluster]),
                     axis=0
                 )
             )
