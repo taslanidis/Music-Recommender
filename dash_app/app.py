@@ -16,9 +16,9 @@ server = app.server
 
 app.layout = dbc.Container(
     children=[
-        html.Div(id='hidden-placeholder'),
-        html.Div(id='hidden-placeholder-2'),
-        html.Div(id="client-session-id"),
+        html.Div(id='hidden_placeholder'),
+        html.Div(id='hidden_placeholder_2'),
+        html.Div(id="client_session_id"),
         dbc.Row(
             children=[
                 dbc.Nav(
@@ -70,7 +70,7 @@ app.layout = dbc.Container(
                             [
                                 dbc.InputGroupText("@"),
                                 dbc.Input(placeholder="Playlist ID", type="string", id="playlist_input"),
-                                dbc.Button("Submit", id="input-group-button", n_clicks=0)
+                                dbc.Button("Submit", id="input_group_button", n_clicks=0)
                             ],
                             className="mb-3",
                         ),
@@ -103,7 +103,7 @@ app.layout = dbc.Container(
                             children=[
                                 html.P("Successfully added playlist or track")
                             ],
-                            id="successful-addition",
+                            id="successful_addition",
                             class_name="alert",
                             dismissable=True,
                             fade=False,
@@ -113,7 +113,7 @@ app.layout = dbc.Container(
                             children=[
                                 html.P("Successfully generated recommendations")
                             ],
-                            id="successful-generation",
+                            id="successful_generation",
                             class_name="alert",
                             dismissable=True,
                             fade=False,
@@ -149,10 +149,10 @@ app.layout = dbc.Container(
 
 @app.callback(
     Output('session_statistics_table', 'children'),
-    Input('client-session-id', 'children')
+    Input('client_session_id', 'children')
 )
-def update_session_plot_figure(session_id: str = None):
-    data = requests.get("http://localhost:8000/session/statistics").json()
+def update_session_stats(session_id: str = None):
+    data = requests.get("http://localhost:8000/session/statistics", timeout=120).json()
     
     if len(data) == 0:
         return [html.Span("Add tracks to the session to get statistics & recommendations")]
@@ -172,10 +172,10 @@ def update_session_plot_figure(session_id: str = None):
 
 @app.callback(
     Output('session_track_plot', 'children'),
-    Input('client-session-id', 'children')
+    Input('client_session_id', 'children')
 )
 def update_session_plot_figure(session_id: str = None):
-    data = requests.get("http://localhost:8000/session/clustering/plot").json()
+    data = requests.get("http://localhost:8000/session/clustering/plot", timeout=120).json()
     
     for d in data:
         d['tsne_coordinate'] = {'x': d['tsne_coordinate'][0], 'y': d['tsne_coordinate'][1]}
@@ -202,8 +202,8 @@ def update_session_plot_figure(session_id: str = None):
 
 
 @app.callback(
-    Output('successful-addition', 'is_open'),
-    Input('input-group-button', 'n_clicks'),
+    Output('successful_addition', 'is_open'),
+    Input('input_group_button', 'n_clicks'),
     State('playlist_input', 'value')
 )
 def add_playlist_to_session(n_clicks, playlist_input):
@@ -219,7 +219,7 @@ def add_playlist_to_session(n_clicks, playlist_input):
 
 
 @app.callback(
-    Output('successful-generation', 'is_open'),
+    Output('successful_generation', 'is_open'),
     Input('reset_listening_session', 'n_clicks')
 )
 def reset_listening_session(n_clicks):

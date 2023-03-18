@@ -52,7 +52,7 @@ class NearestNeighborsRecommender:
         self,
         category: int,
         track_vector: RepresentationVector,
-        exclude_tracks: Optional[List[Track]]
+        exclude_tracks: Optional[List[Track]] = None
     ) -> List[RecommendedTrack]:
         """Find K most similar tracks based on representation vector
 

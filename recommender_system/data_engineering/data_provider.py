@@ -66,10 +66,13 @@ class DataProvider:
 
     def get_track(self, track_id: str) -> Track:
         if track_id not in self._tracks:
-            # TODO: needs thought (get genres in converters)
+
+            enhanced_track = self._spotify_web_api.get_enhanced_track(track_id)
+
             self._tracks[track_id] = TrackConversionInterface.convert_dto_to_domain(
-                self._spotify_web_api.get_track(track_id)
+                enhanced_track
             )
+        
         return self._tracks[track_id]
     
     

@@ -35,9 +35,9 @@ def binary_search(alist: List[Any], item: Any) -> Tuple[int, bool]:
 def get_spotify_object_id(link: str) -> Tuple[bool, bool, str]:
 
     if link.lower().find("playlist/") != -1:
-        return True, False, re.match(r'(^|(?<=playlist\/))[A-Za-z0-9]+($|\?si)', link).group(1)
+        return True, False, re.search(r'(^|(?<=playlist\/))[A-Za-z0-9]+(?=$|\?si)', link, re.IGNORECASE).group(0)
     
     elif link.lower().find("track/") != -1:
-        return False, True, re.match(r'(^|(?<=track\/))[A-Za-z0-9]+($|\?si)', link).group(1)
+        return False, True, re.search(r'(^|(?<=track\/))[A-Za-z0-9]+(?=$|\?si)', link, re.IGNORECASE).group(0)
     
     return True, False, link

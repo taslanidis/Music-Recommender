@@ -26,7 +26,7 @@ class TrackConversionInterface:
 
         domain_object_attrs['release_date'] = track.album.release_date
         domain_object_attrs['track_age'] = (datetime.today() - track.album.release_date).total_seconds()//(365*24*3600)
-        domain_object_attrs['genres'] = [genre.strip() for artist in track.artists for genre in artist.genres if genre.strip() != ""]
+        domain_object_attrs['genres'] = [genre.strip() for artist in track.artists for genre in getattr(artist,'genres',[]) if genre.strip() != ""]
         domain_object_attrs['artist_popularity'] = [artist.popularity for artist in track.artists]
         domain_object_attrs['artist_mean_popularity'] = np.nan
         domain_object_attrs['artist_max_popularity'] = np.nan

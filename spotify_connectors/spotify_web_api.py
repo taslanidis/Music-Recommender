@@ -246,6 +246,30 @@ class SpotifyWebAPI:
         
         return [Artist(**artist) for artist in artists]
 
+
+    def get_track(
+        self,
+        track_id: str
+    ) -> Track:
+        
+        track = self._sp.track(track_id)
+
+        return Track(**track)
+    
+
+    def get_enhanced_track(
+        self,
+        track_id: str
+    ) -> EnhancedTrack:
+        
+        track = self.get_track(track_id)
+
+        audio_features = self.get_audio_features_for_tracks(
+            tracks=[track_id]
+        )
+
+        return EnhancedTrack(audio_features=audio_features[0].dict(), **track.dict())
+
     
     def enhance_tracks_with_artist_information(
         self, 

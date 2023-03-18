@@ -1,6 +1,7 @@
+from typing import Optional
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse, JSONResponse
-from typing import Optional
+
 
 from recommender_system.musicos import MusicOs
 from common.data_transfer.models import SessionSettings, SessionAddition
@@ -23,7 +24,7 @@ async def root():
 
 @app.post("/recommendations_for_playlist")
 async def recommendations_for_playlist(
-    playlist_id: str, 
+    playlist_id: str,
     settings: Optional[SessionSettings]
 ):
     """Get recommendation for specific playlist
@@ -31,7 +32,7 @@ async def recommendations_for_playlist(
     Playlist ID can be both ID or playlist link
     """
     is_playlist, is_track, playlist_id = utils.get_spotify_object_id(playlist_id)
-    
+
     if is_track:
         return JSONResponse(status_code=400, content="Invalid <playlist_id>")
 
