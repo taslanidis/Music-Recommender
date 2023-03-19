@@ -29,7 +29,7 @@ class TrackPoolProcessor:
     
     @staticmethod
     def create_track_pool_from_dict(
-        track_dict: Dict[str, List[Track]]
+        user_track_dict: Dict[str, List[Track]]
     ) -> Dict[str, TrackPoolItem]:
         """
         {
@@ -54,23 +54,26 @@ class TrackPoolProcessor:
         """
         track_pool_items: Dict[str, TrackPoolItem] = {}
 
-        for user_id, user_items in track_dict.items():
-            track_ids = [track.id for track in user_items]
-            bin_total_tracks = len(track_ids)
+        for _, user_items in user_track_dict.items():
             
-            count = Counter(track_ids)
+            user_dict_items: Dict[str, Track] = {
+                track.id: track for track in user_items
+            }
+            bin_total_tracks = len(user_dict_items)
+            
+            count = Counter(list(user_dict_items.keys()))
             
             for track_id, freq in count.items():
 
                 if track_id not in track_pool_items:    
                     
                     track_pool_items[track_id] = TrackPoolItem(
-                        track=track_dict[track_id],
-                        frequency=freq/total_tracks # probability based frequency xi / N
+                        track=user_dict_items[track_id],
+                        frequency=freq/bin_total_tracks # probability based frequency xi / N
                     )
 
                 else:
 
-                    track_pool_items[track_id].frequency += freq/total_tracks # probability based frequency xi / N
+                    track_pool_items[track_id].frequency += freq/bin_total_tracks # probability based frequency xi / N
 
         return track_pool_items

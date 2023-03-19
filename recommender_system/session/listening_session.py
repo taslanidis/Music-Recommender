@@ -26,7 +26,7 @@ class MusicListeningSession:
     def get_track_pool(self) -> Dict[str, TrackPoolItem]:
         
         track_pool = TrackPoolProcessor.create_track_pool_from_dict(
-            track_dict=self.get_tracks_per_user()
+            user_track_dict=self.get_tracks_per_user()
         )
         
         return track_pool
