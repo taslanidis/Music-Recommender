@@ -27,6 +27,13 @@ class ProfileCreator:
             metric='cosine', 
             min_samples=5
         )
+        self._dimensionality_reducer = TSNE(
+            perplexity=10, 
+            n_components=2, 
+            init='pca', 
+            n_iter=2500, 
+            random_state=23
+        )
 
 
     def create_profile_for_track_pool(
@@ -43,8 +50,13 @@ class ProfileCreator:
             Tuple[List[Track], List[float]]: a set of representation vectors for all distinct groups in track pool, along with their weights [0-1]
         """
         track_vectors_ids = list(track_vectors.keys())
+
+        track_reduced_vectors = self._dimensionality_reducer.fit_transform(
+            np.array(list(track_vectors.values()))
+        )
+
         cluster_result = self._profiler.fit_predict(
-            list(track_vectors.values())
+            track_reduced_vectors
         )
         
         points_per_cluster: Dict[int, List] = {}
@@ -85,11 +97,12 @@ class ProfileCreator:
         tracks: List[RepresentationVector]
     ) -> List[Tuple[NDArray, int]]:
         
-        cluster_result = self._profiler.fit_predict(
-            tracks
+        tsne_reduced_output: NDArray = self._dimensionality_reducer.fit_transform(
+            np.array(tracks)
         )
-    
-        tsne_model = TSNE(perplexity=10, n_components=2, init='pca', n_iter=2500, random_state=23)
-        tsne_reduced_output: NDArray = tsne_model.fit_transform(np.array(tracks))
+
+        cluster_result = self._profiler.fit_predict(
+            tsne_reduced_output
+        )
         
         return list(zip(tsne_reduced_output.tolist(), cluster_result.tolist()))
