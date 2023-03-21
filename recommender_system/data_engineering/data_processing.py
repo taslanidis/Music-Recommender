@@ -64,8 +64,7 @@ class DataProcessor:
     
     def _create_track_representation_vector(
         self,
-        track: Track,
-        tf_idf_features
+        track: Track
     ) -> Optional[RepresentationVector]:
         """Internal creator of track representation vectors
 
@@ -84,8 +83,6 @@ class DataProcessor:
         
         genre_embedding = self.create_sentence_embedding(
             sentence_tokenized=genre_tokens,
-            weights_per_word=self._tfidf.transform(genre_tokens).toarray().reshape(-1,), 
-            tfidf_vocab=tf_idf_features,
             features_number=self.w2v_genre_features
         )
         
@@ -140,9 +137,6 @@ class DataProcessor:
             
             df = pd.DataFrame(vocab, columns=['word'])
             df.to_csv('./dataset/genres_vocab.csv', index=False)
-            
-        self._tfidf.fit(vocab)
-        tf_idf_features = list(self._tfidf.get_feature_names_out())
         
         try:
             representation_vectors = pd.read_csv('./dataset/track_vectors.csv')
@@ -157,8 +151,7 @@ class DataProcessor:
             
             for track in tqdm(tracks, desc="Creating Track Vectors"):
                 representation_vector = self._create_track_representation_vector(
-                    track = track,
-                    tf_idf_features = tf_idf_features
+                    track = track
                 )
                 
                 if representation_vector is not None:
@@ -197,8 +190,7 @@ class DataProcessor:
             RepresentationVector: repr output
         """
         return self._create_track_representation_vector(
-            track = track,
-            tf_idf_features = list(self._tfidf.get_feature_names_out())
+            track = track
         )
     
     
@@ -209,16 +201,12 @@ class DataProcessor:
     def create_sentence_embedding(
         self,
         sentence_tokenized: List[str],
-        weights_per_word: NDArray,
-        tfidf_vocab,
         features_number: int
     ) -> NDArray:
         """Creates a sentence embedding based on multiple tokens.
 
         Args:
             sentence_tokenized (List[str]): _description_
-            weights_per_word (NDArray): _description_
-            tfidf_vocab (_type_): _description_
             features_number (int): _description_
 
         Returns:
@@ -228,12 +216,10 @@ class DataProcessor:
         tokens_accumulated = 0
         for word in sentence_tokenized:
             
-            if word not in tfidf_vocab:
+            if word not in self._genre_embeddings.wv:
                 continue
             
-            weight = weights_per_word[tfidf_vocab.index(word)]
             word_vector = self._genre_embeddings.wv.get_vector(word, norm=True)
-            word_vector = word_vector * weight
             sentence_vector += word_vector
             tokens_accumulated += 1
 
