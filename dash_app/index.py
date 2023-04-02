@@ -1,17 +1,21 @@
-import dash
-
-from dash import dcc, html, dash_table
 import dash_bootstrap_components as dbc
 
+from dash import Dash, dcc, html, dash_table, Input, Output, State
+
+from dash_app.src import utils
+
+
 # Initialize the Dash app with Bootstrap stylesheet
-app = dash.Dash(
+app = Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP, "/assets/style.css"],
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
 )
+server = app.server
 
 # Define the app layout
 app.layout = dbc.Container([
+    html.Div(id="client_session_id"),
     # Navbar
     dbc.Navbar(
         dbc.Container(
@@ -131,18 +135,36 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Card([
             dbc.CardHeader(html.H3('Recommended Tracks', className='text-center text-light mb-0')),
-            dbc.CardBody([
-                dbc.Col([
-                    html.H3('Recommended Tracks', className='text-light'),
-                    # Insert list of recommended tracks here
-                ], className='md-6'),
-                dbc.Col([
-                    dcc.Graph(id='recommended-tracks-graph')
-                ], className='md-6')
-            ])
+            dbc.CardBody(
+                [
+                    dbc.Col(
+                        id="group_music_taste",
+                        className='md-6'
+                    ),
+                    dbc.Col(
+                        id="recommended_tracks",
+                        className='md-6'
+                    )
+                ]
+            )
         ])
     ])
 ])
+
+
+
+@app.callback(
+    Output('group_music_taste', 'children'),
+    Input('client_session_id', 'children')
+)
+def update_session_plot_figure(session_id: str = None):
+    
+    if not utils.ping_backend_alive():
+        return []
+
+    fig = utils.create_music_taste_graph(session_id)
+
+    return dcc.Graph(id='group_taste_graph_plot', figure=fig)
 
 
 if __name__ == '__main__':
