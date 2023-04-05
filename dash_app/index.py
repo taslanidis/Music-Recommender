@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 
 from dash import Dash, dcc, html, dash_table, Input, Output, State
 
-from dash_app.src import utils
+from src import utils
 
 
 # Initialize the Dash app with Bootstrap stylesheet
@@ -13,9 +13,56 @@ app = Dash(
 )
 server = app.server
 
+features = [('danceability', 'Danceability'), ('energy', 'Energy'), ('valence', 'Valence')]
+feature_forms_list = [
+    dbc.FormFloating([
+        html.P(feature_name, className='p-feature'),
+        dcc.Dropdown(
+            id=f'{feature_id}-dropdown',
+            options=[
+                {'label': 'High', 'value': 'high'},
+                {'label': 'Medium', 'value': 'medium'},
+                {'label': 'Low', 'value': 'low'}
+            ],
+            clearable=True,
+            value=None,
+            placeholder="All",
+            style={"border": "round"}
+        )
+        ],
+        style={'display': 'grid', 'align-items': 'center'}
+    )
+    for feature_id, feature_name in features
+]
+
+feature_forms_list.extend(
+    [
+        dbc.FormFloating([
+            html.P(f'{mode_name} Genres', className='p-feature'),
+            dcc.Dropdown(
+                id=f'{mode_id}-genre-dropdown',
+                options=[
+                    {'label': 'Blues', 'value': 'Blues'},
+                    {'label': 'Rock', 'value': 'Rock'},
+                    {'label': 'Pop', 'value': 'Pop'}
+                ],
+                clearable=True,
+                value=None,
+                multi=True,
+                placeholder=placeholder,
+                style={"border": "round"}
+            )
+            ],
+            style={'display': 'grid', 'align-items': 'center'}
+        )
+        for mode_name, mode_id, placeholder in [('Include', 'include', 'All'), ('Exclude', 'exclude', 'None')]
+    ]
+)
+
+
 # Define the app layout
 app.layout = dbc.Container([
-    html.Div(id="client_session_id"),
+    html.Div(id="client-session-id"),
     # Navbar
     dbc.Navbar(
         dbc.Container(
@@ -29,73 +76,36 @@ app.layout = dbc.Container([
     # Main content
     dbc.Row([
         # Search bar and submit button
-        dbc.Col([
-            dbc.InputGroup(
-                [
-                    dbc.Input(id='search-bar', type='text', placeholder='Search...'),
-                    dbc.Button('Submit', id='submit-button', color='success')
-                ],
-                className='mb-3'
-            )
-        ], width=3),
+        dbc.Col(
+            [
+                dbc.InputGroup(
+                    [
+                        dbc.Input(id='search-bar', type='text', placeholder='Search...'),
+                        dbc.Button('Submit', id='submit-button', color='success')
+                    ],
+                    className='mb-3'
+                ),
+                html.Div(
+                    dbc.Button('Generate Recommendations', id='generate-recommendations', color='success'),
+                    className="d-grid gap-2"
+                ),
+                dcc.Loading(
+                    id="load-spinner-recommend",
+                    type="circle",
+                    children=[html.Div(children=[], id="load-spinner-recommend-output")],
+                    className="mt-5"
+                )
+            ], 
+            width=3
+        ),
 
         # Party settings
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader(html.H3('Party Settings', className='text-center text-light mb-0')),
-                dbc.CardBody([
-                    dbc.FormFloating([
-                        dbc.Label('Danceability'),
-                        dcc.Dropdown(
-                            id='danceability-dropdown',
-                            options=[
-                                {'label': 'High', 'value': 'high'},
-                                {'label': 'Medium', 'value': 'medium'},
-                                {'label': 'Low', 'value': 'low'}
-                            ],
-                            value='medium',
-                            className='form-control'
-                        )
-                    ]),
-                    dbc.FormFloating([
-                        dbc.Label('Energy'),
-                        dcc.Dropdown(
-                            id='energy-dropdown',
-                            options=[
-                                {'label': 'High', 'value': 'high'},
-                                {'label': 'Medium', 'value': 'medium'},
-                                {'label': 'Low', 'value': 'low'}
-                            ],
-                            value='medium',
-                            className='form-control'
-                        )
-                    ]),
-                    dbc.FormFloating([
-                        dbc.Label('Valence'),
-                        dcc.Dropdown(
-                            id='valence-dropdown',
-                            options=[
-                                {'label': 'Sad', 'value': 'sad'},
-                                {'label': 'Happy', 'value': 'happy'}
-                            ],
-                            value='happy',
-                            className='form-control'
-                        )
-                    ]),
-                    dbc.FormFloating([
-                        dbc.Label('Genre'),
-                        dcc.Dropdown(
-                            id='genre-dropdown',
-                            options=[
-                                {'label': 'Alternative', 'value': 'alternative'},
-                                {'label': 'Blues', 'value': 'blues'},
-                                # Add more genres here...
-                            ],
-                            multi=True,
-                            className='form-control'
-                        )
-                    ])
-                ])
+                dbc.CardBody(
+                    feature_forms_list
+                )
             ], className='mb-3')
         ], width=3),
 
@@ -138,11 +148,11 @@ app.layout = dbc.Container([
             dbc.CardBody(
                 [
                     dbc.Col(
-                        id="group_music_taste",
+                        id="group-music-taste",
                         className='md-6'
                     ),
                     dbc.Col(
-                        id="recommended_tracks",
+                        id="recommended-tracks",
                         className='md-6'
                     )
                 ]
@@ -154,8 +164,8 @@ app.layout = dbc.Container([
 
 
 @app.callback(
-    Output('group_music_taste', 'children'),
-    Input('client_session_id', 'children')
+    Output('group-music-taste', 'children'),
+    Input('client-session-id', 'children')
 )
 def update_session_plot_figure(session_id: str = None):
     
@@ -165,6 +175,52 @@ def update_session_plot_figure(session_id: str = None):
     fig = utils.create_music_taste_graph(session_id)
 
     return dcc.Graph(id='group_taste_graph_plot', figure=fig)
+
+
+@app.callback(Output('load-spinner-recommend-output', 'children', allow_duplicate=True),
+              [Input('generate-recommendations', 'n_clicks')],
+              [State('danceability-dropdown', 'value'),
+               State('energy-dropdown', 'value'),
+               State('valence-dropdown', 'value'),
+               State('include-genre-dropdown', 'value'),
+               State('exclude-genre-dropdown', 'value')],
+              prevent_initial_call=True)
+def update_output_div(n_clicks, danceability, energy, valence, include_genres, exclude_genres):
+    if n_clicks is None:
+        return None
+    else:
+        import time
+        time.sleep(2)
+        
+        return [dbc.Toast(
+                [html.P("Recommendations generated successfully")],
+                id="recommendation-toast",
+                header="Recommendations",
+                icon="success",
+                dismissable=True,
+                is_open=True
+            )]
+
+
+@app.callback(Output('load-spinner-recommend-output', 'children', allow_duplicate=True),
+              [Input('submit-button', 'n_clicks')],
+              [State('search-bar', 'value')],
+              prevent_initial_call=True)
+def update_output_div_from_search(n_clicks, search_value):
+    if n_clicks is None or search_value is None:
+        return None
+    else:
+        import time
+        time.sleep(2)
+        
+        return [dbc.Toast(
+                [html.P("Playlist/track added successfully to the session.")],
+                id="session-add-toast",
+                header="Session Add",
+                icon="success",
+                dismissable=True,
+                is_open=True
+            )]
 
 
 if __name__ == '__main__':

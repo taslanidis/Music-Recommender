@@ -77,3 +77,41 @@ body {
     color: #333;
   }
   
+  /* Toast styling */
+.toast {
+  background-color: #f0fff0;
+  border-color: #90ee90;
+  color: #333;
+}
+
+.toast .toast-header {
+  background-color: #90ee90;
+  color: #333;
+  border-color: #90ee90;
+}
+
+.toast .toast-body {
+  color: #333;
+}
+
+/* Button styling */
+.btn-greenish {
+  background-color: #90ee90;
+  border-color: #90ee90;
+  color: #333;
+}
+
+.btn-greenish:hover {
+  background-color: #8dc68f;
+  border-color: #8dc68f;
+  color: #fff;
+}
+
+.btn-greenish:focus {
+  box-shadow: 0 0 0 0.2rem rgba(144, 238, 144, 0.5);
+}
+
+.p-feature {
+  margin-bottom: 0px;
+  font-weight: bold
+}
