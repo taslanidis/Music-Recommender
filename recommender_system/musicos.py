@@ -100,3 +100,15 @@ class MusicOs:
     
     def get_session_stats(self):
         return self._session.get_session_statistics()
+    
+
+    def add_session_user(self, user_id: str) -> bool:
+        return self._session.add_user(user_id)
+
+    
+    def get_session_users(self) -> List[str]:
+        return self._session.get_users()
+    
+
+    def remove_session_user(self, user_id: str) -> bool:
+        return self._session.remove_user(user_id)

@@ -52,15 +52,31 @@ feature_forms_list.extend(
 
 def get_tab_content():
     tab_content = dbc.Row([
+        # Active users in session
+        # Party settings
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader(html.H3('Active Guests', className='text-center text-light mb-0')),
+                dbc.CardBody(id='active-users')
+            ], className='mb-3')
+        ]),
         # Search bar and submit button
         dbc.Col(
             [
-                dbc.InputGroup(
+                dbc.Row(
                     [
-                        dbc.Input(id='search-bar', type='text', placeholder='Playlist or track id...'),
-                        dbc.Button('Submit', id='submit-button', color='success')
+                        dbc.Col(
+                            dcc.Dropdown(id='active-user-dropdown', placeholder="Select guest...")
+                        ),
+                        dbc.Col(
+                            dbc.Input(id='search-bar', type='text', placeholder='Playlist or track id...'),
+                            width=5
+                        ),
+                        dbc.Col(
+                            dbc.Button('Submit', id='submit-button', color='success', className="btn-block w-100")
+                        ),
                     ],
-                    className='mb-3'
+                    className="g-0 mb-3"
                 ),
                 html.Div(
                     dbc.Button('Generate Recommendations', id='generate-recommendations', color='success'),
@@ -72,7 +88,7 @@ def get_tab_content():
                     children=[html.Div(children=[], id="load-spinner-recommend-output")],
                     className="mt-5"
                 )
-            ]
+            ],width=6
         ),
 
         # Party settings

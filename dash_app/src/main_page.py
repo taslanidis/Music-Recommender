@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 
-from dash import html, dash_table
+from dash import html
 
 from src.tabs import tab1, tab2, tab3
 

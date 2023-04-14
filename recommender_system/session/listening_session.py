@@ -64,3 +64,21 @@ class MusicListeningSession:
             'tracks_number': len(track_pool),
             'top_genres': self.calculate_genre_frequency()
         }
+    
+
+    def add_user(self, user_id: str) -> bool:
+        if user_id not in self._tracks_per_user:
+            self._tracks_per_user[user_id] = []
+            return True
+        return False
+
+
+    def get_users(self) -> List[str]:
+        return list(self._tracks_per_user.keys())
+    
+
+    def remove_user(self, user_id: str) -> bool:
+        if user_id in self._tracks_per_user:
+            self._tracks_per_user.pop(user_id)
+            return True
+        return False

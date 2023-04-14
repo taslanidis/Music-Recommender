@@ -95,8 +95,11 @@ class NearestNeighborsRecommender:
 
     def create_settings_filter(
         self,
-        session_settings: SessionSettings
+        session_settings: Optional[SessionSettings] = None
     ):
+        if not session_settings:
+            return
+        
         for sfilter in session_settings.__filters__:
             pass
 
@@ -104,7 +107,7 @@ class NearestNeighborsRecommender:
     def __recommend_k_tracks(
         self,
         track_pool: Dict[str, TrackPoolItem],
-        session_settings: SessionSettings
+        session_settings: Optional[SessionSettings] = None
     ) -> List[RecommendedTrack]:
         """Recommend K tracks based on a pool of tracks
 
@@ -153,7 +156,7 @@ class NearestNeighborsRecommender:
     def recommend_k_tracks_for_track_pool(
         self,
         track_pool: Dict[str, TrackPoolItem],
-        session_settings: SessionSettings
+        session_settings: Optional[SessionSettings] = None
     ) -> List[RecommendedTrack]:
 
         recommended_tracks = self.__recommend_k_tracks(

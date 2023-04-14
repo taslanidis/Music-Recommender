@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse, JSONResponse
 
@@ -15,6 +15,11 @@ musicos = MusicOs()
 @app.on_event("startup")
 async def startup_event():
     musicos.reset_session()
+
+
+@app.get("/alive", include_in_schema=False)
+async def alive():
+    return JSONResponse(status_code=200, content={"status": "success"})
 
 
 @app.get("/", include_in_schema=False)
@@ -92,6 +97,27 @@ async def session_clusters():
     """Get session clusters for plot
     """
     return musicos.get_track_pool_clusters()
+
+
+@app.get("/session/users/add/{user_id}", response_model=bool)
+async def session_add_user(user_id: str):
+    """Add session user
+    """
+    return musicos.add_session_user(user_id)
+
+
+@app.get("/session/users/get", response_model=List[str])
+async def session_get_users():
+    """Get session users
+    """
+    return musicos.get_session_users()
+
+
+@app.get("/session/users/remove/{user_id}", response_model=bool)
+async def session_remove_user(user_id: str):
+    """Remove session user
+    """
+    return musicos.remove_session_user(user_id)
 
 
 @app.get("/session/reset")

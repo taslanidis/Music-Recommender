@@ -1,8 +1,8 @@
 import dash_bootstrap_components as dbc
 
-from dash import dcc, html, Input, Output, State
+from dash import dcc, html, Input, Output, State, dash_table
 
-from src.utils import ping_backend_alive, create_music_taste_graph, add_to_session
+from src.utils import BackendCommunicator
 
 
 class CallbackManager:
@@ -11,17 +11,61 @@ class CallbackManager:
     def attach_callbacks_to_app(app):
 
         @app.callback(
+            Output('active-users', 'children'),
+            Input('client-session-id', 'children')
+        )
+        def update_active_users(session_id: str = None):
+            
+            if not BackendCommunicator.ping_backend_alive():
+                return []
+
+            active_user_list = BackendCommunicator.get_active_users()
+
+            if len(active_user_list) > 0:
+                return dash_table.DataTable(
+                    data=[{'guestid': guest_id} for guest_id in active_user_list],
+                    columns=[{'name': 'GuestID', 'id': 'guestid'}],
+                    style_header={'backgroundColor': '#343a40', 'color': 'white', 'fontWeight': 'bold'},
+                    style_cell={
+                        'backgroundColor': '#495057',
+                        'color': 'white',
+                        'textAlign': 'center'
+                    },
+                    style_data_conditional=[{
+                        'if': {'row_index': 'odd'},
+                        'backgroundColor': '#343a40'
+                    }]
+                )
+
+            return html.P("No active guests yet. Invite them to Join!")
+        
+
+        @app.callback(
+            Output('active-user-dropdown', 'options'),
+            Input('client-session-id', 'children')
+        )
+        def update_active_user_dropdown(session_id: str = None):
+            
+            if not BackendCommunicator.ping_backend_alive():
+                return []
+
+            active_user_list = BackendCommunicator.get_active_users()
+
+            return active_user_list
+
+
+        @app.callback(
             Output('group-music-taste', 'children'),
             Input('client-session-id', 'children')
         )
         def update_session_plot_figure(session_id: str = None):
             
-            if not ping_backend_alive():
+            if not BackendCommunicator.ping_backend_alive():
                 return []
 
-            fig = create_music_taste_graph(session_id)
+            graph = BackendCommunicator.create_music_taste_graph(session_id)
 
-            return dcc.Graph(id='group_taste_graph_plot', figure=fig)
+            return graph
 
 
         @app.callback(Output('load-spinner-recommend-output', 'children', allow_duplicate=True),
@@ -36,10 +80,10 @@ class CallbackManager:
             if n_clicks is None:
                 return None
             else:
-                import time
-                time.sleep(2)
+                success = BackendCommunicator.generate_recommendations()
                 
-                return [dbc.Toast(
+                if success:
+                    return [dbc.Toast(
                         [html.P("Recommendations generated successfully")],
                         id="recommendation-toast",
                         header="Recommendations",
@@ -48,21 +92,31 @@ class CallbackManager:
                         is_open=True
                     )]
 
+                return [dbc.Toast(
+                    [html.P("Recommendations failed to generate")],
+                    id="recommendation-toast",
+                    header="Recommendations",
+                    icon="warning",
+                    className="warning",
+                    dismissable=True,
+                    is_open=True
+                )]
+
 
         @app.callback(Output('load-spinner-recommend-output', 'children', allow_duplicate=True),
                     [Input('submit-button', 'n_clicks')],
-                    [State('search-bar', 'value')],
+                    [State('search-bar', 'value'), State('active-user-dropdown', 'value')],
                     prevent_initial_call=True)
-        def update_output_div_from_search(n_clicks, search_value):
+        def update_output_div_from_search(n_clicks, search_value, user_id):
             if n_clicks is None or search_value is None:
                 return None
             else:
 
                 success = True
-                if not ping_backend_alive():
+                if not BackendCommunicator.ping_backend_alive():
                     success = False
                 else:
-                    success = add_to_session(search_value)
+                    success = BackendCommunicator.add_to_session(search_value, user_id)
                 
                 if success:
                     return [dbc.Toast(
