@@ -39,3 +39,10 @@ def create_music_taste_graph(session_id: str = None):
     )
 
     fig.update_layout(transition_duration=200)
+
+
+def add_to_session(search_value: str):
+    response = requests.get(f"http://localhost:8000/session/add/{search_value}", timeout=10)
+    success = response.status_code == 200
+
+    return success

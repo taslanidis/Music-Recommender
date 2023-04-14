@@ -80,14 +80,20 @@ body {
   /* Toast styling */
 .toast {
   background-color: #f0fff0;
-  border-color: #90ee90;
+  border-color: #1ABC9C;
   color: #333;
+  padding: 5px;
+}
+
+.warning {
+  background-color: #fff2f0;
+  border-color: #b82222;
 }
 
 .toast .toast-header {
-  background-color: #90ee90;
+  background-color: #abb8b5;
   color: #333;
-  border-color: #90ee90;
+  border-color: #abb8b5;
 }
 
 .toast .toast-body {

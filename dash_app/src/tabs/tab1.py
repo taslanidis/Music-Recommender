@@ -2,8 +2,6 @@ import dash_bootstrap_components as dbc
 
 from dash import Dash, dcc, html, dash_table, Input, Output, State
 
-from src import utils
-
 
 features = [('danceability', 'Danceability'), ('energy', 'Energy'), ('valence', 'Valence')]
 feature_forms_list = [
@@ -59,7 +57,7 @@ def get_tab_content():
             [
                 dbc.InputGroup(
                     [
-                        dbc.Input(id='search-bar', type='text', placeholder='Playlist OR Track ID...'),
+                        dbc.Input(id='search-bar', type='text', placeholder='Playlist or track id...'),
                         dbc.Button('Submit', id='submit-button', color='success')
                     ],
                     className='mb-3'
