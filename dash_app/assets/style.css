@@ -115,3 +115,41 @@ body {
   margin-bottom: 0px;
   font-weight: bold
 }
+
+/* Custom CSS for greenish theme */
+.custom-tabs .nav-link {
+  color: #1ABC9C; /* Font color for inactive tabs */
+  font-weight: bold; /* Font weight for inactive tabs */
+  background-color: #E8F8F3; /* Background color for inactive tabs */
+  border: none; /* Remove border for inactive tabs */
+}
+
+.custom-tabs .nav-link.active {
+  color: #FFF; /* Font color for active tab */
+  font-weight: bold; /* Font weight for active tab */
+  background-color: #1ABC9C; /* Background color for active tab */
+}
+
+.custom-tabs .nav-link:hover {
+  color: #FFF; /* Font color for hover state */
+  background-color: #17A589; /* Background color for hover state */
+}
+
+.custom-tabs .nav-link:focus {
+  box-shadow: none; /* Remove focus box shadow */
+}
+
+/* Align content in the middle of tabs */
+.custom-tabs .nav-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.tab-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px
+}
