@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 
-from dash import Dash, dcc, html, dash_table, Input, Output, State
+from dash import dcc, html
 
 
 features = [('danceability', 'Danceability'), ('energy', 'Energy'), ('valence', 'Valence')]
@@ -57,8 +57,15 @@ def get_tab_content():
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader(html.H3('Active Guests', className='text-center text-light mb-0')),
-                dbc.CardBody(id='active-users')
-            ], className='mb-3')
+                dcc.Loading(
+                    id="load-spinner-users",
+                    type="default",
+                    children=[
+                        dbc.CardBody(id='active-users')
+                    ],
+                    className="mt-5"
+                )
+            ], className='mb-3 h-100')
         ]),
         # Search bar and submit button
         dbc.Col(

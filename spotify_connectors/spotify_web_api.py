@@ -189,13 +189,8 @@ class SpotifyWebAPI:
         return playlists
 
 
-    def get_playlist_by_id(self, playlist_id: str) -> Optional[Playlist]:
-        response = self._sp.playlist(playlist_id = playlist_id)
-        return Playlist(**response) if response is not None else None
-
-
     def get_playlist_tracks(self, playlist_id: str) -> List[Track]:
-        response = self._sp.playlist_tracks(playlist_id = playlist_id)
+        response = self._sp.playlist_items(playlist_id = playlist_id)
         try:
             return [
                 Track(**item['track']) for item in response.get('items', [])

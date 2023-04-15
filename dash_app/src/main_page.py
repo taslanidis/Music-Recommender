@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 
-from dash import html
+from dash import html, dcc
 
 from src.tabs import tab1, tab2, tab3
 
@@ -11,6 +11,7 @@ class PageCreator:
     def get_main_layout():
         return dbc.Container([
             html.Div(id="client-session-id"),
+            dcc.Store(id='active-users-store', data=[]),
             # Navbar
             dbc.Navbar(
                 dbc.Container(
@@ -28,6 +29,7 @@ class PageCreator:
                     dbc.Tab(tab2.get_tab_content(), label="Group Taste", className="tab-content"),
                     dbc.Tab(tab3.get_tab_content(), label="Recommendations", className="tab-content"),
                 ],
-                className="custom-tabs justify-content-center"
+                className="custom-tabs justify-content-center",
+                id="tabs"
             )
         ])

@@ -10,6 +10,27 @@ from dash import html, dcc
 class BackendCommunicator:
 
     @staticmethod
+    def get_session_stats():
+        try:
+
+            r = requests.get("http://localhost:8000/session/statistics", timeout=10)
+            return r.json()
+        
+        except Exception as e:
+            return {}
+
+
+    @staticmethod
+    def add_user_to_session(user_id: str) -> List[str]:
+        try:
+
+            r = requests.get(f"http://localhost:8000/session/users/add/{user_id}", timeout=10)
+            return r.json()
+        
+        except Exception as e:
+            return False
+
+    @staticmethod
     def get_active_users() -> List[str]:
         try:
 
@@ -53,7 +74,7 @@ class BackendCommunicator:
         df = pd.json_normalize(data)
 
         if df.empty:
-            return [html.Span("Add tracks to the session to get statistics & recommendations")]
+            return []
 
         fig = px.scatter(df, x="tsne_coordinate.x", y="tsne_coordinate.y",
                         color="cluster", hover_name="track_name",
