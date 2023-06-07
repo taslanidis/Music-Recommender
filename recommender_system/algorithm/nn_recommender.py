@@ -8,8 +8,9 @@ from collections import Counter
 from recommender_system.algorithm.profile_creator import ProfileCreator
 from recommender_system.algorithm.curator import MusicCurator
 from recommender_system.algorithm.track_pool_processor import TrackPoolProcessor
+from recommender_system.algorithm.settings_filter import SettingsFilter
 from recommender_system.data_engineering.data_provider import DataProvider
-from common.data_transfer.models import SessionSettings
+from common.data_transfer.models import SessionSettings as SessionSettings
 from common.domain.models import (
     Track, 
     Artist, 
@@ -25,7 +26,7 @@ class NearestNeighborsRecommender:
         self._data_provider = DataProvider()
         self._profile_creator = ProfileCreator()
         self._recommender_model = NearestNeighbors(
-            n_neighbors=60,
+            n_neighbors=100,
             metric='cosine'
         )
         self._curator = MusicCurator()
@@ -93,17 +94,6 @@ class NearestNeighborsRecommender:
         return track_pool_vectors
 
 
-    def create_settings_filter(
-        self,
-        session_settings: Optional[SessionSettings] = None
-    ):
-        if not session_settings:
-            return
-        
-        for sfilter in session_settings.__filters__:
-            pass
-
-
     def __recommend_k_tracks(
         self,
         track_pool: Dict[str, TrackPoolItem],
@@ -117,7 +107,9 @@ class NearestNeighborsRecommender:
         Returns:
             List[Track]: recommendations
         """
-        session_settings_filter = self.create_settings_filter(
+        
+        # initialize a Settings Filter class based on the session settings
+        session_settings_filter = SettingsFilter(
             session_settings=session_settings
         )
         
@@ -128,6 +120,7 @@ class NearestNeighborsRecommender:
         if len(track_pool_vectors) <= 0:
             return []
         
+        # create the profile for the track pool created by the users
         eigen_tracks, weights = self._profile_creator.create_profile_for_track_pool(
             track_vectors=track_pool_vectors,
             track_pool=track_pool
@@ -136,14 +129,22 @@ class NearestNeighborsRecommender:
         tracks_to_recommend = []
         weight_per_category = {}
         for category, eigen_track in enumerate(eigen_tracks):
+            
             # get recommendations
             similar_tracks: List[RecommendedTrack] = self.find_k_most_similar_tracks(
                 category=category,
                 track_vector=eigen_track
             )
-            tracks_to_recommend.extend(similar_tracks)
+
+            # filter recommendations
+            similar_tracks_abiding_to_filters = session_settings_filter.filter(
+                recommendation_list=similar_tracks
+            )
+
+            tracks_to_recommend.extend(similar_tracks_abiding_to_filters)
             weight_per_category[category] = weights[category]
 
+        # curate track list as a DJ would do
         curated_recommendations = self._curator.curate_recommendation_list(
             track_pool=tracks_to_recommend,
             recommendation_number=30,

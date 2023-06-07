@@ -3,6 +3,7 @@ import numpy as np
 from typing import List, Optional
 from datetime import datetime, date
 from dateutil import parser
+from enum import Enum
 
 from pydantic import BaseModel, validator
 
@@ -117,16 +118,24 @@ class Playlist(BaseModel):
     type: str
     uri: str
     tracks: PlaylistTracksInformation
-    
+
+
+class Mode(Enum):
+    High = 1
+    Mid = 2
+    Low = 3
+    Undefined = 4
+
     
 class SessionSettings(BaseModel):
-    danceability: Optional[float] = None
-    energy: Optional[float] = None
-    instrumentalness: Optional[float] = None
-    speechiness: Optional[float] = None
-    valence: Optional[float] = None
-    tempo: Optional[float] = None
-    genre_text: Optional[str] = None
+    danceability: Optional[Mode] = Mode.Undefined
+    energy: Optional[Mode] = Mode.Undefined
+    instrumentalness: Optional[Mode] = Mode.Undefined
+    speechiness: Optional[Mode] = Mode.Undefined
+    valence: Optional[Mode] = Mode.Undefined
+    tempo: Optional[Mode] = Mode.Undefined
+    include_genres: Optional[List[str]] = None
+    exclude_genres: Optional[List[str]] = None
     
     __filters__ = [
         'danceability',
@@ -135,7 +144,8 @@ class SessionSettings(BaseModel):
         'speechiness',
         'valence',
         'tempo',
-        'genre_text'
+        'include_genres',
+        'exclude_genres'
     ]
     
 

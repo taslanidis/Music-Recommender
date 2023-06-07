@@ -95,7 +95,7 @@ class MusicOs:
                 tracks_id=[recommendation.track.id for recommendation in recommendations]
             )
 
-        return [(recommendation.track.name_artists[0], recommendation.track.name) for recommendation in recommendations]
+        return [(recommendation.track.name_artists[0], recommendation.track.name, recommendation.track.id) for recommendation in recommendations]
 
     
     def get_session_stats(self):
