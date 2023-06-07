@@ -48,7 +48,13 @@ class CallbackManager:
             if n_clicks is None:
                 return None
             else:
-                success = BackendCommunicator.generate_recommendations()
+                success = BackendCommunicator.generate_recommendations(
+                    danceability=danceability,
+                    energy=energy,
+                    valence=valence,
+                    include_genres=include_genres,
+                    exclude_genres=exclude_genres
+                )
                 
                 if success:
                     return [dbc.Toast(
@@ -144,7 +150,7 @@ class EditableDataTableCallbacks:
         def update_active_users(session_id: str = None):
             
             if not BackendCommunicator.ping_backend_alive():
-                return []
+                return ["Backend is not available at the time. Please try again later..."]
 
             active_user_list = BackendCommunicator.get_active_users()
 

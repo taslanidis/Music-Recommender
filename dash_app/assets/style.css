@@ -159,3 +159,7 @@ body {
   align-items: center;
   padding: 10px
 }
+
+.graphcard{
+  min-width: 50em;
+}

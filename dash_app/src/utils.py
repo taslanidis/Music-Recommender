@@ -53,10 +53,25 @@ class BackendCommunicator:
         
     
     @staticmethod
-    def generate_recommendations():
+    def generate_recommendations(
+        danceability: int,
+        valence: int,
+        energy: int,
+        include_genres: List[str],
+        exclude_genres: List[str]
+    ):
+        
+        data = {
+            'danceability': danceability if danceability is not None else 4,
+            'valence': valence if valence is not None else 4,
+            'energy': energy if energy is not None else 4,
+            'include_genres': include_genres if include_genres is not None else [],
+            'exclude_genres': exclude_genres if exclude_genres is not None else []
+        }
+        
         try:
 
-            r = requests.post("http://localhost:8000/session/recommendations", timeout=120)
+            r = requests.post("http://localhost:8000/session/recommendations", data=json.dumps(data), timeout=120)
             return r.status_code == 200
         
         except Exception as e:

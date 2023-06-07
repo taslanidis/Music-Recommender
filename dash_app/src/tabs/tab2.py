@@ -22,7 +22,8 @@ def get_tab_content():
                         )
                     ]
                 )
-            ])
+            ],
+            class_name="graphcard")
         ])
     ])
 

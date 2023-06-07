@@ -10,9 +10,9 @@ feature_forms_list = [
         dcc.Dropdown(
             id=f'{feature_id}-dropdown',
             options=[
-                {'label': 'High', 'value': 'high'},
-                {'label': 'Medium', 'value': 'medium'},
-                {'label': 'Low', 'value': 'low'}
+                {'label': 'High', 'value': 1},
+                {'label': 'Medium', 'value': 2},
+                {'label': 'Low', 'value': 3}
             ],
             clearable=True,
             value=None,
