@@ -15,7 +15,8 @@ def get_tab_content():
                             dbc.Col(
                                 id="group-music-taste-top-genres"
                             ),
-                            type="graph"
+                            type="graph",
+                            style={'position':'relative', 'zIndex':'999', 'margin-top':'5em'}
                         ),
                         dbc.Col(
                             id="group-music-taste"

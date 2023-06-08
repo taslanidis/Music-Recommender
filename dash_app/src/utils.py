@@ -71,7 +71,7 @@ class BackendCommunicator:
         
         try:
 
-            r = requests.post("http://localhost:8000/session/recommendations", data=json.dumps(data), timeout=120)
+            r = requests.post("http://localhost:8000/session/recommendations/generate", data=json.dumps(data), timeout=120)
             return r.status_code == 200
         
         except Exception as e:
@@ -117,3 +117,14 @@ class BackendCommunicator:
         success = response.status_code == 200
 
         return success
+    
+
+    @staticmethod
+    def get_latest_recommendations():
+        try:
+
+            r = requests.get("http://localhost:8000/session/recommendations/latest", timeout=15)
+            return r.json()
+        
+        except Exception as e:
+            return []

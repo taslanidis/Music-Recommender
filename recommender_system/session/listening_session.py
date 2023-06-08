@@ -3,20 +3,23 @@ import numpy as np
 from typing import List, Dict
 from collections import Counter
 
-from common.domain.models import Track, TrackPoolItem
+from common.domain.models import Track, TrackPoolItem, RecommendedTrack
 from recommender_system.algorithm.track_pool_processor import TrackPoolProcessor
 
 
 class MusicListeningSession:
 
     _tracks_per_user: Dict[str, List[Track]]
+    _latest_recommendations: List[RecommendedTrack]
     
     def __init__(self):
         self._tracks_per_user = {}
+        self._latest_recommendations = []
 
     
     def clear_session(self):
         self._tracks_per_user = {}
+        self._latest_recommendations = []
 
 
     def get_tracks_per_user(self) -> List[Track]:
@@ -37,8 +40,16 @@ class MusicListeningSession:
             self._tracks_per_user[user_id] = []
         
         self._tracks_per_user[user_id].extend(tracks)
-        
     
+
+    def set_latest_recommendations(self, recommendations: List[RecommendedTrack]):
+        self._latest_recommendations = recommendations
+
+    
+    def get_latest_recommendations(self):
+        return self._latest_recommendations
+    
+
     def calculate_genre_frequency(self):
         top_genres = {}
         for item in self.get_track_pool().values():

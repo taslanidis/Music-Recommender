@@ -12,6 +12,7 @@ class CallbackManager:
 
         EditableDataTableCallbacks.attach_to_app(app)
         MusicTasteGraphCallbacks.attach_to_app(app)
+        RecommendationsGraphCallbacks.attach_to_app(app)
 
         @app.callback(
             Output('active-users-store', 'data', allow_duplicate=True),
@@ -220,5 +221,41 @@ class MusicTasteGraphCallbacks:
                             {'name': 'Frequency', 'id': 'frequency'}
                         ],
                         data=[{'genre': key, 'frequency': value} for key, value in stats['top_genres'].items()],
+                        cell_selectable=False
+                    )
+        
+
+
+class RecommendationsGraphCallbacks:
+
+    @staticmethod
+    def attach_to_app(app):
+
+        @app.callback(
+            Output('recommended-tracks', 'children'),
+            Input('client-session-id', 'children'),
+            Input('tabs', 'active_tab'),
+            State('recommended-tracks', 'children')
+        )
+        def update_recommended_tracks(session_id: str, selected_tab, result):
+            
+            if selected_tab != 'tab-2':
+                return result
+            
+            if not BackendCommunicator.ping_backend_alive():
+                return []
+
+            recommendations = BackendCommunicator.get_latest_recommendations()
+
+            if len(recommendations) == 0:
+                return html.P("Invite your guests to send spotify music and generate recommendations! Current session is empty.")
+
+            return dash_table.DataTable(
+                        id='recommended-tracks-table',
+                        columns=[
+                            {'name': 'Artist', 'id': 'artist'},
+                            {'name': 'Track', 'id': 'track'}
+                        ],
+                        data=[{'artist': track[0], 'track': track[1]} for track in recommendations],
                         cell_selectable=False
                     )

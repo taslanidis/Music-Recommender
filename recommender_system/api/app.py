@@ -74,7 +74,7 @@ async def session_add(session_addition: SessionAddition):
     
 
 
-@app.post("/session/recommendations")
+@app.post("/session/recommendations/generate")
 async def recommendations_for_session(settings: Optional[SessionSettings] = None):
     """Get recommendations for the current session
     """
@@ -83,6 +83,13 @@ async def recommendations_for_session(settings: Optional[SessionSettings] = None
         settings=settings,
         add_to_spotify_playlist=True
     )
+
+
+@app.get("/session/recommendations/latest")
+async def get_latest_recommendations_for_session():
+    """Get latest recommendations for the current session
+    """
+    return musicos.get_latest_recommendations()
 
 
 @app.get("/session/statistics")

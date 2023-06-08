@@ -11,12 +11,17 @@ def get_tab_content():
                 dbc.CardHeader(html.H3('Recommended Tracks', className='text-center text-light mb-0')),
                 dbc.CardBody(
                     [
-                        dbc.Col(
-                            id="recommended-tracks"
+                        dcc.Loading(
+                            dbc.Col(
+                                id="recommended-tracks"
+                            ),
+                            type="graph",
+                            style={'position':'relative', 'zIndex':'999', 'margin-top':'5em'}
                         )
                     ]
                 )
-            ])
+            ],
+            class_name="graphcard")
         ])
     ])
 

@@ -65,6 +65,8 @@ class MusicOs:
             session_settings=settings
         )
 
+        self._session.set_latest_recommendations(recommendations)
+
         if add_to_spotify_playlist:
 
             self._spotify_web_api.replace_playlist_tracks(
@@ -95,8 +97,19 @@ class MusicOs:
                 tracks_id=[recommendation.track.id for recommendation in recommendations]
             )
 
-        return [(recommendation.track.name_artists[0], recommendation.track.name, recommendation.track.id) for recommendation in recommendations]
+        return [
+                (recommendation.track.name_artists[0], recommendation.track.name, recommendation.track.id) \
+                    for recommendation in recommendations
+            ]
 
+
+    def get_latest_recommendations(self):
+        recommendations = self._session.get_latest_recommendations()
+        return [
+                (recommendation.track.name_artists[0], recommendation.track.name, recommendation.track.id) \
+                    for recommendation in recommendations
+            ]
+    
     
     def get_session_stats(self):
         return self._session.get_session_statistics()

@@ -162,4 +162,5 @@ body {
 
 .graphcard{
   min-width: 50em;
+  min-height: 30em;
 }
