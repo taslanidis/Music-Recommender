@@ -35,7 +35,37 @@ def scrape_wiki():
 
     process.crawl(Wikipedia)
     process.start() # the script will block here until the crawling is finished
-    
+
+
+@app.command('scrape-concerts')
+def scrape_wiki():
+    from scrapy.utils.project import get_project_settings
+    from scrapy.crawler import CrawlerProcess
+    from scrapers.music_data_scrapers.spiders.concerts import Concerts
+
+
+    settings_file_path = 'scrapers'
+    os.environ.setdefault('SCRAPY_SETTINGS_MODULE', settings_file_path)
+    process = CrawlerProcess(settings=get_project_settings())
+
+    process.crawl(Concerts)
+    process.start() # the script will block here until the crawling is finished
+
+
+@app.command('scrape-reddit-artists')
+def scrape_wiki():
+    from scrapy.utils.project import get_project_settings
+    from scrapy.crawler import CrawlerProcess
+    from scrapers.music_data_scrapers.spiders.reddit import Reddit
+
+
+    settings_file_path = 'scrapers'
+    os.environ.setdefault('SCRAPY_SETTINGS_MODULE', settings_file_path)
+    process = CrawlerProcess(settings=get_project_settings())
+
+    process.crawl(Reddit)
+    process.start() # the script will block here until the crawling is finished
+
 
 @app.command('get-enhanced-track')
 def get_enhanced_track(track_id: str):

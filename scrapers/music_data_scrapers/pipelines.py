@@ -17,7 +17,7 @@ class MusicDataScrapersPipeline:
 
 
     def close_spider(self, spider):
-        with open('./dataset/artists_wiki_graph.json', 'w') as outfile:
+        with open(f'./dataset/{spider.name}_artists_graph.json', 'w') as outfile:
             json.dump(self.records, outfile, indent=4)
         
     
