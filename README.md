@@ -1,5 +1,5 @@
 # Music Recommender
-Music recommendation system for groups of people.
+**Music recommendation system for groups of people.**
 
 ⭕ 👤 → 🎶 Music recommendation for individuals has long been ongoing on major platforms such as Spotify and Youtube. 
 
