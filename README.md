@@ -10,6 +10,8 @@ Music recommendation system for groups of people.
 
 Everything is designed around representation vectors for tracks, artists and genres.
 
+![Idea](docs/idea.png)
+
 ## Track Representation Vector
 The foundation of the algorithm is the track representation vector.
 
