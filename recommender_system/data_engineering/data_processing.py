@@ -22,14 +22,16 @@ class DataProcessor:
     """
     scalers: Dict[str, MinMaxScaler] = None
     
-    def __init__(self, track_features_weight: int = 1):
+    def __init__(self):
         self._settings = get_settings()
-        self._genre_embeddings = Word2Vec.load(self._settings.genre_embeddings)
+        self._genre_embeddings = np.load(self._settings.genre_embeddings, allow_pickle=True)
         self._artist_embeddings = Word2Vec.load(self._settings.artist_embeddings)
         self._tfidf = TfidfVectorizer(tokenizer=word_tokenize)
         self.w2v_genre_features = self._settings.genre_embeddings_size
         self.w2v_artist_features = self._settings.artist_embeddings_size
-        self._track_features_weight = track_features_weight
+        self._track_audio_features_weight = 2
+        self._track_popularity_weight = 1
+        self._track_date_weight = 5
         self._genre_weight = 1
         self._artist_weight = 1
         self.scalers = {}
@@ -91,10 +93,23 @@ class DataProcessor:
         if track.id_artists[0].strip() in self._artist_embeddings.wv:
             artist_embedding = self._artist_embeddings.wv.get_vector(track.id_artists[0].strip(), norm=True)
 
+        normalized_features = self.normalize_features(track)
+        popularity = normalized_features[track.get_index_of_feature('artist_mean_popularity')]
+        track_age = normalized_features[track.get_index_of_feature('track_age')]
+        audio_features_vector = np.delete(
+            normalized_features,
+            [
+                track.get_index_of_feature('artist_mean_popularity'),
+                track.get_index_of_feature('track_age')
+            ]
+        )
+
         # combine information in a single vector
         representation_vector = np.hstack(
             [
-                self.normalize_features(track) * self._track_features_weight,
+                audio_features_vector * self._track_audio_features_weight,
+                popularity * self._track_popularity_weight,
+                track_age * self._track_date_weight,
                 genre_embedding * self._genre_weight,
                 artist_embedding * self._artist_weight
             ]
@@ -162,18 +177,6 @@ class DataProcessor:
             df.set_index('id', inplace=True)
             df.to_csv('./dataset/track_vectors.csv')
         
-        mask = np.hstack(
-                [
-                    np.array([self._track_features_weight]*len(Track.__scaled_features__)),
-                    np.array([self._genre_weight]*self.w2v_genre_features),
-                    np.array([self._artist_weight]*self.w2v_artist_features)
-                ]
-                
-            )
-        
-        for key in representation_vectors:
-            representation_vectors[key] = mask * representation_vectors[key]
-        
         return representation_vectors
     
     
@@ -195,7 +198,7 @@ class DataProcessor:
     
     
     def process_genre(self, genre: str) -> str:
-        return genre.strip()
+        return genre.strip().strip("'")
 
 
     def create_sentence_embedding(
@@ -216,10 +219,10 @@ class DataProcessor:
         tokens_accumulated = 0
         for word in sentence_tokenized:
             
-            if word not in self._genre_embeddings.wv:
+            if word not in self._genre_embeddings.item():
                 continue
             
-            word_vector = self._genre_embeddings.wv.get_vector(word, norm=True)
+            word_vector = self._genre_embeddings.item().get(word)
             sentence_vector += word_vector
             tokens_accumulated += 1
 

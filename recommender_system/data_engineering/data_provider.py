@@ -23,7 +23,7 @@ class DataProvider:
     ):
         self._db = LocalStorage()
         self._spotify_web_api = SpotifyWebAPI()
-        self._data_processor = DataProcessor(track_features_weight=2)
+        self._data_processor = DataProcessor()
         self._tracks = self._db.get_tracks()
         self._artists = self._db.get_artists()
         

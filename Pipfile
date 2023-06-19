@@ -22,11 +22,10 @@ gensim = "*"
 scrapy = "*"
 ipykernel = "*"
 dash = "*"
-dash-core-components = "*"
-dash-html-components = "*"
 dash-bootstrap-components = "*"
 pecanpy = "*"
 pytest = "*"
+sentence-transformers = "*"
 
 [dev-packages]
 ipykernel = "*"

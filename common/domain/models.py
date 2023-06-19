@@ -45,6 +45,11 @@ class Track(BaseModel):
     
     def to_numpy_normalizable_part(self) -> NDArray:
        return np.array([getattr(self, key) for key in self.__scaled_features__])
+    
+    def get_index_of_feature(self, feature: str):
+        if feature in self.__scaled_features__:
+            return self.__scaled_features__.index(feature)
+        return -1
 
 
 class Artist(BaseModel):

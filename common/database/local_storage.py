@@ -34,7 +34,7 @@ class LocalStorage(DefaultDb):
             pd.DataFrame
         """
         df_db_tracks = pd.read_csv(self._track_path)
-        df_db_tracks['release_date'] = pd.to_datetime(df_db_tracks['release_date'])
+        df_db_tracks['release_date'] = pd.to_datetime(df_db_tracks['release_date'], yearfirst=True, format='mixed')
         df_db_tracks['id_artists'] = df_db_tracks['id_artists'].apply(
             lambda x: x[1:-1].strip().replace("'", "").split(',')
         )

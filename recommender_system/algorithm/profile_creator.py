@@ -28,7 +28,7 @@ class ProfileCreator:
             min_samples=5
         )
         self._dimensionality_reducer = TSNE(
-            perplexity=10, 
+            perplexity=5, 
             n_components=2, 
             init='pca', 
             n_iter=2500, 
