@@ -3,7 +3,7 @@ import pandas as pd
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MinMaxScaler
-from gensim.models import Word2Vec
+from gensim.models import KeyedVectors
 from nltk.tokenize import word_tokenize
 from typing import List, Dict, Optional
 from numpy.typing import NDArray
@@ -25,7 +25,8 @@ class DataProcessor:
     def __init__(self):
         self._settings = get_settings()
         self._genre_embeddings = np.load(self._settings.genre_embeddings, allow_pickle=True)
-        self._artist_embeddings = Word2Vec.load(self._settings.artist_embeddings)
+        self._artist_embeddings = KeyedVectors.load(self._settings.artist_embeddings)
+        self._artist_embeddings.fill_norms()
         self._tfidf = TfidfVectorizer(tokenizer=word_tokenize)
         self.w2v_genre_features = self._settings.genre_embeddings_size
         self.w2v_artist_features = self._settings.artist_embeddings_size
@@ -90,8 +91,8 @@ class DataProcessor:
         
         artist_embedding = np.array([np.nan] * self.w2v_artist_features)
         
-        if track.id_artists[0].strip() in self._artist_embeddings.wv:
-            artist_embedding = self._artist_embeddings.wv.get_vector(track.id_artists[0].strip(), norm=True)
+        if track.id_artists[0].strip() in self._artist_embeddings:
+            artist_embedding = self._artist_embeddings.get_vector(track.id_artists[0].strip(), norm=True)
 
         normalized_features = self.normalize_features(track)
         popularity = normalized_features[track.get_index_of_feature('artist_mean_popularity')]
