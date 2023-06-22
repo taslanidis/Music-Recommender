@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     
     track_local_stored_path: str = None
     artist_local_stored_path: str = None
+    genre_vocab_local_stored_path: str = None
+    track_representation_vectors_stored_path: str = None
 
     class Config:
         env_file = ".env"

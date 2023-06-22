@@ -26,6 +26,7 @@ dash-bootstrap-components = "*"
 pecanpy = "*"
 pytest = "*"
 sentence-transformers = "*"
+nbformat = "*"
 
 [dev-packages]
 ipykernel = "*"

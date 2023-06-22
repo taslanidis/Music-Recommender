@@ -81,6 +81,13 @@ def get_playlist_tracks(playlist_id: str):
     echo(json.dumps(tracks[0].dict(), indent=4, default=str))
 
 
+@app.command('get-playlist-track-ids')
+def get_playlist_tracks(playlist_id: str):
+    sp_api = SpotifyWebAPI()
+    tracks = sp_api.get_playlist_track_ids(playlist_id=playlist_id)
+    echo(json.dumps(tracks, indent=4, default=str))
+
+
 @app.command('get-enhanced-track-with-artist')
 def get_enhanced_track_with_artist(track_id: str):
     sp_api = SpotifyWebAPI()

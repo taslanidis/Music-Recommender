@@ -47,7 +47,7 @@ class MusicOs:
             track_pool_clusters.append({
                 'track_id': track_id,
                 'track_name': f"{track.name_artists[0]} - {track.name}",
-                'cluster': tsne_point[1],
+                'cluster': str(tsne_point[1]) if tsne_point[1] != -1 else "Noise",
                 'tsne_coordinate': tsne_point[0]
             })
             

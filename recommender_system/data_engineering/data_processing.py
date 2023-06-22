@@ -123,7 +123,7 @@ class DataProcessor:
         return representation_vector
     
     
-    def _initialize_track_representation_vectors(
+    def construct_track_representation_vectors(
         self,
         tracks: List[Track]
     ) -> Dict[str, RepresentationVector]:
@@ -137,47 +137,32 @@ class DataProcessor:
         Returns:
             List[RepresentationVector]: List of representation vectors for each track
         """
-        try:
-            df = pd.read_csv('./dataset/genres_vocab.csv')
-            vocab = df['word'].to_list()
+        vocab = list(set(
+            [
+                self.process_genre(genre) \
+                    for track in tqdm(tracks, desc="Creating vocab for genres") \
+                    for genre in track.genres
+            ]
+        ))
         
-        except Exception:
+        df = pd.DataFrame(vocab, columns=['word'])
+        df.to_csv(self._settings.genre_vocab_local_stored_path, index=False)
+
+        representation_vectors = {}
         
-            vocab = list(set(
-                [
-                    self.process_genre(genre) \
-                        for track in tqdm(tracks, desc="Creating vocab for genres") \
-                        for genre in track.genres
-                ]
-            ))
+        for track in tqdm(tracks, desc="Creating Track Vectors"):
+            representation_vector = self._create_track_representation_vector(
+                track = track
+            )
             
-            df = pd.DataFrame(vocab, columns=['word'])
-            df.to_csv('./dataset/genres_vocab.csv', index=False)
-        
-        try:
-            representation_vectors = pd.read_csv('./dataset/track_vectors.csv')
-            representation_vectors.set_index('id', inplace=True)
-            representation_vectors = representation_vectors.to_dict(orient='index')
-            representation_vectors = {
-                key: np.array(list(vector.values())) for key, vector in representation_vectors.items()
-            }
-        
-        except Exception:
-            representation_vectors = {}
+            if representation_vector is not None:
+                representation_vectors[track.id] = representation_vector
             
-            for track in tqdm(tracks, desc="Creating Track Vectors"):
-                representation_vector = self._create_track_representation_vector(
-                    track = track
-                )
-                
-                if representation_vector is not None:
-                    representation_vectors[track.id] = representation_vector
-                
-            df = pd.DataFrame(list(representation_vectors.values()), columns=[f"w{i+1}" for i in range(len(representation_vector))])
-            df['id'] = list(representation_vectors.keys())
-            df.set_index('id', inplace=True)
-            df.to_csv('./dataset/track_vectors.csv')
-        
+        df = pd.DataFrame(list(representation_vectors.values()), columns=[f"w{i+1}" for i in range(len(representation_vector))])
+        df['id'] = list(representation_vectors.keys())
+        df.set_index('id', inplace=True)
+        df.to_csv(self._settings.track_representation_vectors_stored_path)
+    
         return representation_vectors
     
     

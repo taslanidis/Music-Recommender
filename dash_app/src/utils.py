@@ -99,7 +99,7 @@ class BackendCommunicator:
         fig.update_layout(
             plot_bgcolor='rgba(0, 0, 0, 0)',
             paper_bgcolor='rgba(0, 0, 0, 0)',
-            showlegend=False
+            showlegend=True
         )
 
         fig.update_layout(transition_duration=200)

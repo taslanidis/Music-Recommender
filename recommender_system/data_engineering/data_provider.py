@@ -26,14 +26,13 @@ class DataProvider:
         self._data_processor = DataProcessor()
         self._tracks = self._db.get_tracks()
         self._artists = self._db.get_artists()
+        self._genres_vocab = self._db.get_genres_vocab()
+        self._track_representation_vectors = self._db.get_track_representation_vectors()
         
         if not use_as_mapper_only:
             
             self._data_processor.fit_normalizer(self._tracks.values())
-            
-            self._track_representation_vectors = self._data_processor._initialize_track_representation_vectors(
-                self._tracks.values()
-            )
+        
         
         if create_hash_map_for_artists:
             self._artist_hash_map: Dict[str, List[ArtistSearchableObject]] = {}

@@ -200,6 +200,19 @@ class SpotifyWebAPI:
             self._logger.warning(f"Issue while trying to load tracks for playlist ID: {playlist_id}. Details: {e}")
 
         return []
+    
+
+    def get_playlist_track_ids(self, playlist_id: str) -> List[str]:
+        response = self._sp.playlist_items(playlist_id = playlist_id)
+        try:
+            return [
+                Track(**item['track']).id for item in response.get('items', [])
+            ] if response is not None else []
+        
+        except Exception as e:
+            self._logger.warning(f"Issue while trying to load tracks for playlist ID: {playlist_id}. Details: {e}")
+
+        return []
 
 
     def get_playlist_tracks_with_audio_features(self, playlist_id: str) -> List[EnhancedTrack]:

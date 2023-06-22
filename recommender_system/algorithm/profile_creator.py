@@ -1,9 +1,10 @@
 import numpy as np
 
 from numpy.typing import NDArray
-from typing import List, get_type_hints, Tuple, Dict
+from typing import List, get_type_hints, Tuple, Dict, Optional
 from sklearn.cluster import DBSCAN
 from sklearn.manifold import TSNE
+from sklearn.neighbors import NearestNeighbors
 
 from common.domain.models import Track, RepresentationVector, TrackPoolItem
 
@@ -22,18 +23,25 @@ class ProfileCreator:
 
 
     def __init__(self):
-        self._profiler = DBSCAN(
-            eps=0.05, 
-            metric='cosine', 
-            min_samples=5
-        )
+
         self._dimensionality_reducer = TSNE(
-            perplexity=5, 
+            perplexity=4, 
             n_components=2, 
             init='pca', 
-            n_iter=2500, 
+            metric='cosine',
+            n_iter=1000, 
             random_state=23
         )
+
+
+    def _determine_eps(self, data, min_samples: int = 4) -> float:
+        # determine eps
+        nbrs = NearestNeighbors(n_neighbors=min_samples).fit(data)
+        distances, indices = nbrs.kneighbors(data)
+        distances = distances[:,2]
+        distances = np.sort(distances, axis=0)
+
+        return np.percentile(distances, 95) + 0.2 * np.percentile(distances, 95)
 
 
     def create_profile_for_track_pool(
@@ -55,7 +63,17 @@ class ProfileCreator:
             np.array(list(track_vectors.values()))
         )
 
-        cluster_result = self._profiler.fit_predict(
+        eps = self._determine_eps(
+            data=track_reduced_vectors,
+            min_samples=4
+        )
+
+        custom_profiler = DBSCAN(
+            eps=eps, 
+            min_samples=4
+        )
+
+        cluster_result = custom_profiler.fit_predict(
             track_reduced_vectors
         )
         
@@ -63,6 +81,10 @@ class ProfileCreator:
         weights_per_cluster: Dict[int, List] = {}
         
         for i, cluster in enumerate(cluster_result):
+            
+            # skip outliers (flagged by DBSCAN)
+            if cluster == -1: continue
+            
             track_id = track_vectors_ids[i]
             
             if cluster not in points_per_cluster:
@@ -97,12 +119,24 @@ class ProfileCreator:
         tracks: List[RepresentationVector]
     ) -> List[Tuple[NDArray, int]]:
         
-        tsne_reduced_output: NDArray = self._dimensionality_reducer.fit_transform(
-            np.array(tracks)
+        representation_vectors = [vector for vector in tracks if vector is not None]
+
+        track_reduced_vectors: NDArray = self._dimensionality_reducer.fit_transform(
+            np.array(representation_vectors)
         )
 
-        cluster_result = self._profiler.fit_predict(
-            tsne_reduced_output
+        eps = self._determine_eps(
+            data=track_reduced_vectors,
+            min_samples=4
+        )
+
+        custom_profiler = DBSCAN(
+            eps=eps, 
+            min_samples=4
+        )
+
+        cluster_result = custom_profiler.fit_predict(
+            track_reduced_vectors
         )
         
-        return list(zip(tsne_reduced_output.tolist(), cluster_result.tolist()))
+        return list(zip(track_reduced_vectors.tolist(), cluster_result.tolist()))

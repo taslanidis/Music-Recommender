@@ -29,11 +29,11 @@ class SettingsFilter:
         session_settings: SessionSettings
     ):
         self.include_genres = session_settings.include_genres \
-                                if session_settings.include_genres is not None else []
+                                if session_settings is not None and session_settings.include_genres is not None else []
         self.exclude_genres = session_settings.exclude_genres \
-                                if session_settings.exclude_genres is not None else []
+                                if session_settings is not None and session_settings.exclude_genres is not None else []
 
-        mode = session_settings.danceability
+        mode = session_settings.danceability if session_settings is not None else None
         
         if mode == Mode.High:
             self.danceability = [0.65, 1]
@@ -44,7 +44,7 @@ class SettingsFilter:
         else:
             self.danceability = [0.0, 1.0]
 
-        mode = session_settings.energy
+        mode = session_settings.energy if session_settings is not None else None
 
         if mode == Mode.High:
             self.energy = [0.65, 1]
@@ -56,7 +56,7 @@ class SettingsFilter:
             self.energy = [0.0, 1.0]
 
         
-        mode = session_settings.valence
+        mode = session_settings.valence if session_settings is not None else None
 
         if mode == Mode.High:
             self.valence = [0.6, 1]
@@ -68,7 +68,7 @@ class SettingsFilter:
             self.valence = [0.0, 1.0]
 
         
-        mode = session_settings.instrumentalness
+        mode = session_settings.instrumentalness if session_settings is not None else None
 
         if mode == Mode.High:
             self.instrumentalness = [0.6, 1]

@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os.path
 
 from datetime import datetime
 from typing import List, Dict
@@ -7,20 +8,26 @@ from settings import get_settings
 from tqdm import tqdm
 
 from common.database.default_db import DefaultDb
-from common.domain.models import Artist, Track
+from common.domain.models import Artist, Track, RepresentationVector
 
 
 class LocalStorage(DefaultDb):
     
     _artists: Dict[str, Artist] = None
     _tracks: Dict[str, Track] = None
+    _track_representation_vectors: Dict[str, RepresentationVector] = None
+    _genres_vocab: List[str]
 
     def __init__(self):
         self._settings = get_settings()
         self._track_path = self._settings.track_local_stored_path
         self._artist_path = self._settings.artist_local_stored_path
+        self._genres_vocab_path = self._settings.genre_vocab_local_stored_path
+        self._track_representation_vectors_path = self._settings.track_representation_vectors_stored_path
         self._artists = self.load_artists()
         self._tracks = self.load_tracks()
+        self._genres_vocab = self.load_genres_vocab()
+        self._track_representation_vectors = self.load_track_representation_vectors()
     
     
     def get_all_tracks_csv(self) -> pd.DataFrame:
@@ -56,6 +63,21 @@ class LocalStorage(DefaultDb):
             lambda x: x[1:-1].strip().replace("'", "").split(',')
         )
         return df_db_artists
+
+
+    def load_track_representation_vectors(self):
+        representation_vectors = pd.read_csv(self._track_representation_vectors_path)
+        representation_vectors.set_index('id', inplace=True)
+        representation_vectors = representation_vectors.to_dict(orient='index')
+        representation_vectors = {
+            key: np.array(list(vector.values())) for key, vector in representation_vectors.items()
+        }
+        return representation_vectors
+
+
+    def load_genres_vocab(self):
+        df = pd.read_csv(self._genres_vocab_path)
+        return df['word'].to_list() 
 
 
     def load_tracks(self) -> Dict[str, Track]:
@@ -160,3 +182,11 @@ class LocalStorage(DefaultDb):
     
     def get_artists(self):
         return self._artists
+
+
+    def get_genres_vocab(self):
+        return self._genres_vocab
+    
+
+    def get_track_representation_vectors(self):
+        return self._track_representation_vectors
