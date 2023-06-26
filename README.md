@@ -1,14 +1,18 @@
 # Music Recommender
-**Music recommendation system for groups of people.**
 
 ⭕ 👤 → 🎶 Music recommendation for individuals has long been ongoing on major platforms such as Spotify and Youtube. 
 
 ✅ 👥 → 🎶 The issue at hand is how to deal with recommending music based on a dynamic environment of people entering or leaving a group.
 
-## The Idea
-💡 This is a first step in a process of creating an automatic DJ system for private parties, small bars and dedicated clubs where the audience control the music being played based on their suggestions.
 
-Everything is designed around representation vectors for tracks, artists and genres.
+## The Idea
+A few months ago I was at a 🎊 party when I realized, how tedious it would be to choose what music to play in order to be fine-tuned for the 👯attendees. Should I go to each one, ask them, write down their preference, and then search for a playlist?
+
+That got me working on a music recommendation algorithm for large groups of people, using Spotify as a music provider.
+
+People attending a party or gathering are able to share music with the host, who can set specific preferences based on the music gathered. The algorithm using unsupervised ML techniques can identify distinct music tastes present in the group and provide relevant tracks to satisfy and get all attendees to enjoy their time.
+
+This algorithm is developed and tested with a subspace of Spotify music track library of ~130.000 tracks as a recommendation pool but can identify whatever music is shared through live calls on Spotify's API.
 
 ![Idea](docs/idea.png)
 
@@ -17,17 +21,22 @@ The foundation of the algorithm is the track representation vector.
 
 ![TRV](docs/track_representation_vector.png)
 
-## Data
-In order to represent the entities accordingly, the data architecture is presented as per below.
+## Audio features
 
-![Data](docs/input_data.png)
+![AudioFeatures](docs/spotify_audio_features.png)
 
 ## Artist Embeddings
 Artist embeddings have been created by web scraping Wikipedia. Who other artists have they collaborated with, who they had a concert with, and others that are a simple reference in the same page.
 
 In order to plot them in the 2D space, the TSNE dimensionality reduction algorithm is used.
 
-![ArtistVectors](docs/artist_representation.png)
+![ArtistVectors](docs/artist_embeddings.png)
+
+## Genre Embeddings
+Created Genre embeddings using sentence transformers with BERT LLM.
+
+![GenreVectors](docs/genre_embeddings.png)
+
 
 ## Identifying Group Music taste profile
 
@@ -35,7 +44,7 @@ The profile can be identified by one or more vectors that will be later used for
 
 In order to do that, all the track representation vector dimensions are reduced with **TSNE**, and then all different music tastes are identified with the **DBSCAN clustering algorithm**.
 
-![2dgraphtracks](docs/2dgraph.png)
+![2dgraphtracks](docs/representation_of_tracks_in_2d_example.jpg)
 
 **Process:**
 1. M clusters from DBSCAN
@@ -56,5 +65,3 @@ Because different versions of the same tracks exist with the same vectors, a cur
 A system has been created with FastAPI that you can just execute and have the backend ready for your application.
 
 There are all the necessary endpoints ready for consumption.
-
-## !!! The only thing missing and I can't post publicly is the library of tracks that I have from SpotifyAPI with audio features

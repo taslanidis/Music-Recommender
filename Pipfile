@@ -27,6 +27,7 @@ pecanpy = "*"
 pytest = "*"
 sentence-transformers = "*"
 nbformat = "*"
+seaborn = "*"
 
 [dev-packages]
 ipykernel = "*"
