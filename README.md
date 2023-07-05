@@ -6,7 +6,7 @@
 
 
 ## The Idea
-A few months ago I was at a 🎊 party when I realized, how tedious it would be to choose what music to play in order to be fine-tuned for the 👯attendees. Should I go to each one, ask them, write down their preference, and then search for a playlist?
+Consider being at a party or gathering. How tedious it would be to choose what music to play in order to be fine-tuned for the attendees 👯. Should I go to each one, ask them, write down their preference, and then search for a playlist?
 
 That got me working on a music recommendation algorithm for large groups of people, using Spotify as a music provider.
 
