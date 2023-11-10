@@ -1,20 +1,25 @@
 # Music Recommender
+Consider being at a party or gathering. How tedious it would be to choose what music to play in order to be fine-tuned for the attendees 👯. Should I go to each one, ask them, write down their music preference, and then search for a playlist?
+
+That got me working on a **music recommendation algorithm for large groups of people**, using Spotify as a music provider.
+
+1. People attending a party or gathering are able to share music with the host.
+2. Party host can set specific preferences (e.g. preference for dance music)
+3. The algorithm using unsupervised ML techniques can identify distinct music tastes present in the group and provide relevant tracks to satisfy and get all attendees to enjoy their time.
+
+## Outline
+
+* Web Scraping to create a large music artist graph (with the connections between artists).
+* Node2Vec to create artist embeddings based on graphs.
+* Auto-adjusted DB-SCAN.
+* TSNE.
+* k-NN with cosine similarity between track representation vectors.
+
+![Idea](docs/idea.png)
 
 ⭕ 👤 → 🎶 Music recommendation for individuals has long been ongoing on major platforms such as Spotify and Youtube. 
 
 ✅ 👥 → 🎶 The issue at hand is how to deal with recommending music based on a dynamic environment of people entering or leaving a group.
-
-
-## The Idea
-Consider being at a party or gathering. How tedious it would be to choose what music to play in order to be fine-tuned for the attendees 👯. Should I go to each one, ask them, write down their preference, and then search for a playlist?
-
-That got me working on a music recommendation algorithm for large groups of people, using Spotify as a music provider.
-
-People attending a party or gathering are able to share music with the host, who can set specific preferences based on the music gathered. The algorithm using unsupervised ML techniques can identify distinct music tastes present in the group and provide relevant tracks to satisfy and get all attendees to enjoy their time.
-
-This algorithm is developed and tested with a subspace of Spotify music track library of ~130.000 tracks as a recommendation pool but can identify whatever music is shared through live calls on Spotify's API.
-
-![Idea](docs/idea.png)
 
 ## Track Representation Vector
 The foundation of the algorithm is the track representation vector.
